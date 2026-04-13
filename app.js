@@ -49,7 +49,12 @@ async function loadPlayers() {
 
   data.forEach(player => {
     const div = document.createElement("div");
-    div.className = "player";
+    let rankClass = "rank-na";
+
+    if (player.rank.toLowerCase().startsWith("ht")) rankClass = "rank-ht";
+    if (player.rank.toLowerCase().startsWith("lt")) rankClass = "rank-lt";
+
+    div.className = `player ${rankClass}`;
     div.innerText = `${player.name} - ${player.rank}`;
     tierlist.appendChild(div);
   });
