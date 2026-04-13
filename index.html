@@ -1,23 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pixel Craft Tierlist</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pixel Craft Tierlist</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h1>Pixel Craft Tierlist</h1>
+<div class="bg"></div>
 
-<div id="navbar"></div>
+<header class="topbar">
+  <div class="logo-wrap">
+    <img src="assets/logo.png" class="logo">
+  </div>
 
-<div id="gamemodeHeader"></div>
+  <input id="search" placeholder="Search players...">
 
-<div id="tierlist"></div>
+  <a href="https://discord.gg/jqPt6a563h" target="_blank" class="discord-btn">
+    <img src="assets/discord.png"> Get Tier Tested
+  </a>
+</header>
 
-<div class="corner">
-  Join & get tier tested:<br>
-  <a href="https://discord.gg/jqPt6a563h" target="_blank">.gg/jqPt6a563h</a>
-</div>
+<nav id="tabs"></nav>
+
+<main>
+  <h1 id="title">Overall Rankings</h1>
+  <div id="list"></div>
+</main>
 
 <script type="module" src="app.js"></script>
 </body>
