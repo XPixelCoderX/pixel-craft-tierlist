@@ -675,3 +675,16 @@ body {
   .player-skin { width: 36px; height: 36px; }
   .ip-corner { top: 10px; right: 10px; }
 }
+/* Rank Outline Colors */
+.row.rank-gold {
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 0 15px #fbbf24, 0 4px 12px #00000030 !important;
+}
+.row.rank-silver {
+  border: 2px solid #cbd5e1 !important;
+  box-shadow: 0 0 12px #cbd5e1, 0 4px 12px #00000030 !important;
+}
+.row.rank-bronze {
+  border: 2px solid #cd7f32 !important;
+  box-shadow: 0 0 10px #cd7f32, 0 4px 12px #00000030 !important;
+}
