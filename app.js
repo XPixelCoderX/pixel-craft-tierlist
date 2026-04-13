@@ -1,3 +1,7 @@
+const supabase = window.supabase;
+if (!supabase) {
+  console.error('Supabase client not loaded');
+}
 // app.js - Pixel Craft Tierlist
 const POINTS_MAP = {
   'HT1': 60, 'LT1': 50,
