@@ -1,182 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Pixel Craft Tierlist</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-
-<style>
-
-/* RESET */
-* { box-sizing:border-box; }
-
-body {
-  margin:0;
-  font-family:'Inter',sans-serif;
-  color:white;
-  overflow-x:hidden;
-}
-
-/* 🌌 DEEP BLACK BLUE BACKGROUND */
-.bg {
-  position:fixed;
-  inset:0;
-  z-index:-2;
-
-  background:
-    radial-gradient(circle at 20% 10%, #0a1020 0%, transparent 40%),
-    radial-gradient(circle at 80% 90%, #05080f 0%, transparent 50%),
-    linear-gradient(180deg, #02040a 0%, #000000 100%);
-}
-
-/* glow overlay */
-.glow {
-  position:fixed;
-  inset:0;
-  z-index:-1;
-  background:radial-gradient(circle at center, rgba(88,101,242,0.08), transparent 70%);
-}
-
-/* TOPBAR */
-.topbar {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 20px;
-  background:rgba(10,12,20,0.7);
-  backdrop-filter:blur(12px);
-}
-
-.logo { height:38px; }
-
-/* SEARCH */
-.search input {
-  padding:8px;
-  background:#0f1420;
-  border:none;
-  border-radius:8px;
-  color:white;
-}
-
-/* DISCORD */
-.discord {
-  background:#5865f2;
-  padding:8px 12px;
-  border-radius:8px;
-  color:white;
-  text-decoration:none;
-  font-weight:600;
-}
-
-/* TABS */
-.tabs {
-  display:flex;
-  gap:8px;
-  padding:10px;
-  justify-content:center;
-}
-
-.tab {
-  width:48px;
-  height:48px;
-  background:#0f1420;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-}
-
-.tab img { width:26px; }
-
-.tab.active {
-  background:#5865f2;
-  box-shadow:0 0 10px rgba(88,101,242,0.6);
-}
-
-/* MAIN */
-.main {
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
-}
-
-/* TITLE */
-h1 {
-  text-align:center;
-  margin-bottom:20px;
-}
-
-/* CARD */
-.card {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#0f1420;
-  margin-bottom:10px;
-  padding:12px;
-  border-radius:12px;
-  transition:.2s;
-}
-
-.card:hover {
-  transform:scale(1.02);
-}
-
-/* TOP 3 */
-.first { border:2px solid gold; }
-.second { border:2px solid silver; }
-.third { border:2px solid #cd7f32; }
-
-/* PLAYER */
-.player {
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
-
-.avatar {
-  width:40px;
-  border-radius:8px;
-}
-
-/* POINTS */
-.points {
-  font-weight:800;
-  font-size:18px;
-}
-
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>✦ NEBULA RANK ✦</title>
+  <!-- Supabase & Fonts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <!-- Background layers for deep black-blue glow -->
+  <div class="bg-glow"></div>
+  <div class="bg-noise"></div>
+  
+  <div class="app-container">
+    <!-- Header with custom text logo (no image) -->
+    <header class="main-header">
+      <div class="logo-text">
+        <span class="logo-icon"><i class="fas fa-star-shine"></i></span>
+        <span class="logo-word">VOID</span><span class="logo-word accent">RANK</span>
+      </div>
+      <div class="header-stats">
+        <div class="live-badge"><span class="pulse"></span>LIVE</div>
+        <div class="region-filter">
+          <i class="fas fa-globe"></i>
+          <select id="regionFilterSelect" aria-label="Filter by region">
+            <option value="ALL">All Regions</option>
+            <option value="NA">NA</option>
+            <option value="EU">EU</option>
+            <option value="AS">AS</option>
+            <option value="OCE">OCE</option>
+          </select>
+        </div>
+      </div>
+    </header>
 
-<div class="bg"></div>
-<div class="glow"></div>
+    <!-- Leaderboard Table / Skeleton loading -->
+    <main>
+      <div class="leaderboard-wrapper">
+        <!-- Table header (always visible) -->
+        <div class="table-header">
+          <div class="rank-col">#</div>
+          <div class="player-col">Player</div>
+          <div class="tier-col">Tier</div>
+          <div class="region-col">Region</div>
+          <div class="points-col">Points</div>
+        </div>
 
-<header class="topbar">
-  <img src="assets/logo.png" class="logo">
+        <!-- Skeleton loader (animated) -->
+        <div id="skeletonContainer" class="skeleton-container">
+          <!-- 5 skeleton rows will be generated by JS, but static fallback -->
+        </div>
 
-  <div class="search">
-    <input placeholder="Search players...">
+        <!-- Actual leaderboard rows -->
+        <div id="leaderboardRows" class="leaderboard-rows" style="display: none;"></div>
+
+        <!-- Empty state -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+          <i class="fas fa-database"></i>
+          <p>No players found. Add some data to Supabase.</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="main-footer">
+      <p>⚡ HT1 (60)  •  LT1 (50)  •  HT2 (40)  •  LT2 (30)  •  HT3 (20)  •  LT3 (15)  •  HT4 (10)  •  LT4 (5)  •  HT5 (2)  •  LT5 (1)</p>
+    </footer>
   </div>
 
-  <a href="https://discord.gg/jqPt6a563h" class="discord" target="_blank">
-    Join & Get Tier Tested
-  </a>
-</header>
+  <!-- Player Profile Popup Modal (quick view) -->
+  <div id="playerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      <div id="modalContent" class="modal-content">
+        <!-- Populated by JS -->
+      </div>
+      <div class="modal-actions">
+        <a href="#" id="viewFullProfileBtn" class="btn-primary" target="_blank">View Full Profile <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
 
-<nav class="tabs" id="tabs"></nav>
-
-<main class="main">
-  <h1>Overall Rankings</h1>
-  <div id="list"></div>
-</main>
-
-<script type="module" src="app.js"></script>
-
+  <!-- Scripts -->
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // Initialize skeleton on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSkeletons(5);
+    });
+  </script>
 </body>
 </html>
