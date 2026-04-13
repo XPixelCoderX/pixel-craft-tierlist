@@ -6,7 +6,7 @@
 
 <title>Pixel Craft Tierlist</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,25 +14,38 @@
 
 <div class="bg"></div>
 
-<header class="topbar">
+<header class="topbar glass">
   <div class="logo-wrap">
     <img src="assets/logo.png" class="logo">
   </div>
 
-  <input id="search" placeholder="Search players...">
+  <div class="search-wrap">
+    <input id="search" placeholder="Search players...">
+  </div>
 
   <a href="https://discord.gg/jqPt6a563h" target="_blank" class="discord-btn">
-    <img src="assets/discord.png"> Get Tier Tested
+    <img src="assets/discord.png">
+    Join & Get Tier Tested
   </a>
 </header>
 
-<nav id="tabs"></nav>
+<nav id="tabs" class="tabs glass"></nav>
 
-<main>
-  <h1 id="title">Overall Rankings</h1>
+<main class="main">
+
+  <div class="header">
+    <h1 id="title">Overall Rankings</h1>
+    <span class="sub">Pixel Craft Competitive Tierlist</span>
+  </div>
+
   <div id="list"></div>
+
 </main>
 
+<!-- PLAYER POPUP -->
+<div id="popup" class="popup hidden"></div>
+
 <script type="module" src="app.js"></script>
+
 </body>
 </html>
