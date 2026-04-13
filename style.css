@@ -9,7 +9,6 @@ body {
 h1 {
   text-align: center;
   padding: 20px;
-  font-size: 32px;
 }
 
 /* NAVBAR */
@@ -18,8 +17,8 @@ h1 {
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  padding: 10px;
   background: #111;
+  padding: 10px;
 }
 
 .tab {
@@ -30,12 +29,10 @@ h1 {
   background: #1a1a1a;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
 }
 
 .tab img {
   width: 18px;
-  height: 18px;
 }
 
 .tab.active {
@@ -49,16 +46,42 @@ h1 {
 }
 
 #gamemodeHeader img {
-  width: 64px;
-  height: 64px;
+  width: 70px;
+}
+
+/* PLAYER */
+.player {
+  padding: 10px;
+  margin: 6px auto;
+  max-width: 600px;
+  background: #1a1a22;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* TOP 3 */
+.first {
+  background: linear-gradient(90deg, gold, #fff2a8);
+  color: black;
+  font-weight: bold;
+}
+
+.second {
+  background: linear-gradient(90deg, silver, #ddd);
+  color: black;
+  font-weight: bold;
+}
+
+.third {
+  background: linear-gradient(90deg, #cd7f32, #e6b17e);
+  color: black;
+  font-weight: bold;
 }
 
 /* TIERS */
 .tier {
   margin: 10px auto;
   max-width: 800px;
-  border-radius: 8px;
-  overflow: hidden;
 }
 
 .tier-title {
@@ -66,12 +89,6 @@ h1 {
   font-weight: bold;
 }
 
-.tier-players {
-  padding: 10px;
-  background: #15151c;
-}
-
-/* COLORS */
 .ht1 { background: #00ff99; color: black; }
 .ht2 { background: #33ffbb; color: black; }
 .ht3 { background: #66ffcc; color: black; }
@@ -81,14 +98,6 @@ h1 {
 .lt3 { background: #ff8800; color: black; }
 
 .na { background: #555; }
-
-/* PLAYER */
-.player {
-  padding: 6px;
-  margin: 4px 0;
-  background: #222;
-  border-radius: 5px;
-}
 
 /* CORNER */
 .corner {
