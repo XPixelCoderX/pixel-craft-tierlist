@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Pixel Craft Tierlist</title>
-  <!-- Supabase & Fonts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,16 +32,18 @@
 
   <div class="app-container">
     <header class="main-header">
-      <div class="logo-text">
-        <span class="logo-icon"><i class="fas fa-cube"></i></span>
-        <span class="logo-word">PIXEL</span><span class="logo-word accent">CRAFT</span>
-        <span class="logo-sub">Tierlist</span>
+      <div class="logo-area">
+        <div class="logo-icon"><i class="fas fa-cube"></i></div>
+        <div class="logo-text">
+          <span class="logo-word">PIXEL</span><span class="logo-word accent">CRAFT</span>
+          <span class="logo-sub">Tierlist</span>
+        </div>
       </div>
-      <div class="header-stats">
+      <div class="header-actions">
         <div class="live-badge"><span class="pulse"></span>LIVE</div>
         <div class="region-filter">
           <i class="fas fa-globe"></i>
-          <select id="regionFilterSelect" aria-label="Filter by region">
+          <select id="regionFilterSelect">
             <option value="ALL">All Regions</option>
             <option value="NA">NA</option>
             <option value="EU">EU</option>
@@ -53,7 +54,7 @@
       </div>
     </header>
 
-    <!-- Gamemode chips -->
+    <!-- Gamemode strip -->
     <div class="gamemode-strip" id="gamemodeStrip"></div>
 
     <!-- Leaderboard -->
@@ -64,7 +65,7 @@
           <div class="player-col">Player</div>
           <div class="tier-col">Tier</div>
           <div class="region-col">Region</div>
-          <div class="points-col">Points</div>
+          <div class="points-col">Pts</div>
         </div>
 
         <div id="skeletonContainer" class="skeleton-container"></div>
@@ -81,7 +82,7 @@
     </footer>
   </div>
 
-  <!-- Player Modal -->
+  <!-- Player Modal (quick view) -->
   <div id="playerModal" class="modal-overlay" style="display: none;">
     <div class="modal-card">
       <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
@@ -92,7 +93,6 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="supabase.js"></script>
   <script src="gamemodes.js"></script>
   <script src="app.js"></script>
