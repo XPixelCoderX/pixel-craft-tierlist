@@ -1,4 +1,4 @@
-// app.js - Pixel Craft Tierlist (Complete)
+// app.js - Pixel Craft Tierlist (Per-Gamemode Tiers)
 (function() {
   const supabase = window.pixelSupabase;
   if (!supabase) return;
@@ -19,7 +19,7 @@
 
   function getTierClass(t) { return `tier-${t.toLowerCase()}`; }
 
-  // Calculate total points for a player (sum of gamemode_tiers)
+  // Calculate total points (sum of all gamemode tiers) for overall
   function calculateTotalPoints(player) {
     const gamemodeTiers = player.gamemode_tiers || {};
     let total = 0;
@@ -27,11 +27,30 @@
       const tier = gamemodeTiers[mode];
       total += POINTS_MAP[tier] || 0;
     }
-    // If no gamemode tiers, fallback to base tier
     if (total === 0 && player.tier) {
       total = POINTS_MAP[player.tier] || 0;
     }
     return total;
+  }
+
+  // Get the tier and points for a specific gamemode (or overall)
+  function getTierAndPointsForMode(player, mode) {
+    if (mode === 'overall') {
+      return {
+        tier: player.tier,
+        points: calculateTotalPoints(player)
+      };
+    } else {
+      const gamemodeTiers = player.gamemode_tiers || {};
+      const tier = gamemodeTiers[mode];
+      if (tier) {
+        return {
+          tier: tier,
+          points: POINTS_MAP[tier] || 0
+        };
+      }
+      return null; // player doesn't have this gamemode
+    }
   }
 
   // --- Copy IP ---
@@ -138,17 +157,29 @@
   function applyFiltersAndSort() {
     const filterVal = document.getElementById('regionFilterSelect').value;
     let filtered = [...allPlayers];
+    
+    // Region filter
     if (filterVal !== 'ALL') filtered = filtered.filter(p => p.region === filterVal);
-    if (currentGamemode !== 'overall') {
-      filtered = filtered.filter(p => {
-        const tiers = p.gamemode_tiers || {};
-        return tiers[currentGamemode] !== undefined;
-      });
-    }
-    // Calculate total points for each player
-    filtered = filtered.map(p => ({ ...p, points: calculateTotalPoints(p) }))
-                       .sort((a,b) => b.points - a.points);
-    renderRows(filtered);
+    
+    // Gamemode filtering & point calculation
+    const mode = currentGamemode;
+    const processed = [];
+    
+    filtered.forEach(player => {
+      const result = getTierAndPointsForMode(player, mode);
+      if (result) {
+        processed.push({
+          ...player,
+          displayTier: result.tier,
+          points: result.points
+        });
+      }
+    });
+    
+    // Sort by points descending
+    processed.sort((a, b) => b.points - a.points);
+    
+    renderRows(processed);
   }
 
   // --- Context Menu for Rows ---
@@ -166,13 +197,16 @@
   function showRowContextMenu(e, player) {
     e.preventDefault();
     const menu = createContextMenu();
-    const tiersSummary = player.tier;
+    const mode = currentGamemode;
+    const tierInfo = getTierAndPointsForMode(player, mode);
+    const displayTier = tierInfo ? tierInfo.tier : player.tier;
+    
     menu.innerHTML = `
       <div class="context-menu-item" data-action="copy-username">
         <i class="fas fa-user"></i> Copy Username
       </div>
       <div class="context-menu-item" data-action="copy-tier">
-        <i class="fas fa-trophy"></i> Copy Tier: ${tiersSummary}
+        <i class="fas fa-trophy"></i> Copy ${mode === 'overall' ? 'Overall' : mode} Tier: ${displayTier}
       </div>
       <div class="context-menu-item" data-action="copy-all-tiers">
         <i class="fas fa-list"></i> Copy All Tiers
@@ -191,7 +225,7 @@
       closeMenu();
     };
     menu.querySelector('[data-action="copy-tier"]').onclick = () => {
-      navigator.clipboard?.writeText(player.tier);
+      navigator.clipboard?.writeText(displayTier);
       closeMenu();
     };
     menu.querySelector('[data-action="copy-all-tiers"]').onclick = () => {
@@ -207,20 +241,26 @@
     const skel = document.getElementById('skeletonContainer');
     const empty = document.getElementById('emptyState');
     skel.style.display = 'none';
+    
     if (!players.length) {
-      rows.style.display = 'none'; empty.style.display = 'flex'; return;
+      rows.style.display = 'none';
+      empty.style.display = 'flex';
+      return;
     }
-    rows.style.display = 'block'; empty.style.display = 'none';
+    
+    rows.style.display = 'block';
+    empty.style.display = 'none';
+    
     let html = '';
     players.forEach((p, idx) => {
       const rank = idx + 1;
-      // Determine rank outline class
       let rankOutlineClass = '';
       if (rank === 1) rankOutlineClass = 'rank-gold';
       else if (rank === 2) rankOutlineClass = 'rank-silver';
       else if (rank === 3) rankOutlineClass = 'rank-bronze';
       
-      const tierClass = getTierClass(p.tier);
+      const displayTier = p.displayTier;
+      const tierClass = getTierClass(displayTier);
       const region = p.region || '🌍';
       const username = p.username;
       const skinUrl = `https://minotar.net/helm/${username}/40.png`;
@@ -240,7 +280,7 @@
             <div class="player-name-container">${nameHtml}</div>
           </div>
           <div class="tier-col">
-            <div class="tier-bubble ${tierClass}" title="${p.tier} • ${POINTS_MAP[p.tier]} pts">${p.tier}</div>
+            <div class="tier-bubble ${tierClass}" title="${displayTier} • ${p.points} pts">${displayTier}</div>
           </div>
           <div class="region-col"><span class="region-tag">${region}</span></div>
           <div class="points-col">${p.points}</div>
@@ -263,11 +303,17 @@
   function showPlayerModal(username) {
     const player = allPlayers.find(p => p.username === username);
     if (!player) return;
+    
     const modal = document.getElementById('playerModal');
     const content = document.getElementById('modalContent');
     const link = document.getElementById('viewFullProfileBtn');
-    const points = calculateTotalPoints(player);
-    const tierClass = getTierClass(player.tier);
+    
+    const mode = currentGamemode;
+    const tierInfo = getTierAndPointsForMode(player, mode);
+    const displayTier = tierInfo ? tierInfo.tier : player.tier;
+    const points = tierInfo ? tierInfo.points : calculateTotalPoints(player);
+    
+    const tierClass = getTierClass(displayTier);
     const skinUrl = `https://minotar.net/helm/${player.username}/100.png`;
     const displayName = player.nickname || player.username;
     const isOwner = player.username.toLowerCase() === 'n2ab';
@@ -281,8 +327,9 @@
           ${isOwner ? '<i class="fas fa-crown" style="color:#fbbf24;"></i>' : ''}
           ${staffIcon ? `<span style="font-size:1.2rem;">${staffIcon}</span>` : ''}
         </div>
-        <div class="tier-bubble ${tierClass}" style="width:64px;height:64px;font-size:1.2rem;">${player.tier}</div>
+        <div class="tier-bubble ${tierClass}" style="width:64px;height:64px;font-size:1.2rem;">${displayTier}</div>
         <div>${points} pts • ${player.region || 'Global'}</div>
+        ${mode !== 'overall' ? `<div style="font-size:0.9rem; opacity:0.8;">Gamemode: ${mode}</div>` : ''}
       </div>
     `;
     link.href = `player.html?user=${encodeURIComponent(player.username)}`;
