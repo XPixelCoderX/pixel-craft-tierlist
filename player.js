@@ -1,4 +1,4 @@
-// player.js - Full Profile
+// player.js - Full Profile (Fixed)
 (function() {
   const supabase = window.pixelSupabase;
   if (!supabase) return;
@@ -25,6 +25,19 @@
     return 'bronze';
   }
 
+  function calculateTotalPoints(player) {
+    const gamemodeTiers = player.gamemode_tiers || {};
+    let total = 0;
+    for (const mode in gamemodeTiers) {
+      const tier = gamemodeTiers[mode];
+      total += POINTS_MAP[tier] || 0;
+    }
+    if (total === 0 && player.tier) {
+      total = POINTS_MAP[player.tier] || 0;
+    }
+    return total;
+  }
+
   // Context menu for profile page
   let contextMenu = null;
   function createContextMenu() {
@@ -40,8 +53,6 @@
   function showProfileContextMenu(e, playerData) {
     e.preventDefault();
     const menu = createContextMenu();
-    const tiersSummary = Object.entries(playerData.gamemode_tiers || {})
-      .map(([mode, tier]) => `${mode}: ${tier}`).join(', ') || playerData.tier;
     menu.innerHTML = `
       <div class="context-menu-item" data-action="copy-username">
         <i class="fas fa-user"></i> Copy Username
@@ -89,12 +100,12 @@
       const player = allPlayers.find(p => p.username === username);
       if (!player) throw new Error('Player not found');
 
-      // Calculate overall rank
-      const playersWithPoints = allPlayers.map(p => ({ ...p, points: POINTS_MAP[p.tier] || 0 }));
+      // Calculate overall rank using total points
+      const playersWithPoints = allPlayers.map(p => ({ ...p, points: calculateTotalPoints(p) }));
       playersWithPoints.sort((a,b) => b.points - a.points);
       const rank = playersWithPoints.findIndex(p => p.username === username) + 1;
 
-      const points = POINTS_MAP[player.tier] || 0;
+      const points = calculateTotalPoints(player);
       const tierClass = getTierClass(player.tier);
       const displayName = player.nickname || player.username;
       const isOwner = player.username.toLowerCase() === 'n2ab';
