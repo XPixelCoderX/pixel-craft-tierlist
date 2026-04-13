@@ -4,12 +4,15 @@ import { supabase } from "./supabase.js";
 const tabs = document.getElementById("tabs");
 const list = document.getElementById("list");
 
+/* POINT SYSTEM */
+const pts = {
+  ht1:100, ht2:80, ht3:60,
+  lt1:50, lt2:40, lt3:30, lt4:20, lt5:10
+};
+
 let mode = "overall";
 
-/* POINT SYSTEM */
-const pts = { ht1:100, ht2:90, ht3:80, lt1:70, lt2:60, lt3:50 };
-
-/* FORMAT NAMES */
+/* FORMAT */
 const names = {
   fireballmace:"Fireball Mace",
   fireballfight:"Fireball Fight",
@@ -28,9 +31,9 @@ const names = {
 
 const format = n => names[n] || n;
 
-/* CREATE TABS */
-gamemodes.forEach(g => {
-  const t = document.createElement("div");
+/* TABS */
+gamemodes.forEach(g=>{
+  const t=document.createElement("div");
   t.className="tab";
   t.innerHTML=`<img src="assets/gamemodes/${g}.png">`;
 
@@ -43,37 +46,92 @@ gamemodes.forEach(g => {
 
   tabs.appendChild(t);
 });
-
 tabs.firstChild.classList.add("active");
 
-/* LOAD DATA */
+/* LOAD */
 async function load() {
   const { data } = await supabase.from("players").select("*");
 
-  let map={};
+  let players = {};
 
   data.forEach(p=>{
+    if(!players[p.name]) {
+      players[p.name] = {
+        points:0,
+        region:p.region,
+        modes:{}
+      };
+    }
+
     let val = pts[p.rank.toLowerCase()] || 0;
-    if(!map[p.name]) map[p.name]=0;
-    map[p.name]+=val;
+
+    players[p.name].points += val;
+    players[p.name].modes[p.gamemode] = p.rank;
   });
 
-  let arr = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  let sorted = Object.entries(players).sort((a,b)=>b[1].points-a[1].points);
 
-  list.innerHTML = arr.map(([name,points],i)=>{
+  list.innerHTML = sorted.map(([name,p],i)=>{
+
     let cls = i===0?"first":i===1?"second":i===2?"third":"";
 
+    /* TIER BUBBLES */
+    let bubbles = gamemodes.slice(1).map(g=>{
+      let r = p.modes[g];
+      if(!r) return `<div class="bubble empty"></div>`;
+
+      return `
+      <div class="bubble ${r.toLowerCase()}">
+        <img src="assets/gamemodes/${g}.png">
+        <span>${r}</span>
+      </div>`;
+    }).join("");
+
     return `
-    <div class="card ${cls}">
+    <div class="card ${cls}" onclick="openProfile('${name}')">
+
       <div class="player">
         <img class="avatar" src="https://render.crafty.gg/3d/bust/${name}">
-        <strong>#${i+1} ${name}</strong>
+        <div>
+          <strong>#${i+1} ${name}</strong>
+          <div class="region ${p.region?.toLowerCase()}">${p.region || "NA"}</div>
+        </div>
       </div>
+
+      <div class="bubbles">${bubbles}</div>
+
       <div class="points">
-        <strong>${points}</strong><br>PTS
+        <strong>${p.points}</strong><br>PTS
       </div>
+
     </div>`;
   }).join("");
 }
+
+window.openProfile = async function(name){
+  const { data } = await supabase.from("players").select("*").eq("name",name);
+
+  let content = data.map(p=>`
+    <div class="profile-row">
+      <img src="assets/gamemodes/${p.gamemode}.png">
+      <span>${format(p.gamemode)}</span>
+      <strong>${p.rank}</strong>
+    </div>
+  `).join("");
+
+  document.getElementById("popup").innerHTML = `
+    <div class="popup-inner">
+      <h2>${name}</h2>
+      ${content}
+      <button onclick="closePopup()">Close</button>
+    </div>
+  `;
+
+  document.getElementById("popup").classList.remove("hidden");
+};
+
+window.closePopup = ()=>{
+  document.getElementById("popup").classList.add("hidden");
+};
 
 load();
