@@ -12,13 +12,27 @@
   let currentFilter = 'ALL';
   let currentGamemode = 'overall';
 
-  // Staff icons
   const staffIcons = {
     'sradmin': '👑', 'admin': '🛡️', 'mod': '⚔️', 'srhelper': '✨',
     'helper': '🔧', 'partner_manager': '🤝', 'partner_helper': '💼'
   };
 
   function getTierClass(t) { return `tier-${t.toLowerCase()}`; }
+
+  // Calculate total points for a player (sum of gamemode_tiers)
+  function calculateTotalPoints(player) {
+    const gamemodeTiers = player.gamemode_tiers || {};
+    let total = 0;
+    for (const mode in gamemodeTiers) {
+      const tier = gamemodeTiers[mode];
+      total += POINTS_MAP[tier] || 0;
+    }
+    // If no gamemode tiers, fallback to base tier
+    if (total === 0 && player.tier) {
+      total = POINTS_MAP[player.tier] || 0;
+    }
+    return total;
+  }
 
   // --- Copy IP ---
   function initCopyButtons() {
@@ -131,7 +145,8 @@
         return tiers[currentGamemode] !== undefined;
       });
     }
-    filtered = filtered.map(p => ({ ...p, points: POINTS_MAP[p.tier] || 0 }))
+    // Calculate total points for each player
+    filtered = filtered.map(p => ({ ...p, points: calculateTotalPoints(p) }))
                        .sort((a,b) => b.points - a.points);
     renderRows(filtered);
   }
@@ -199,6 +214,12 @@
     let html = '';
     players.forEach((p, idx) => {
       const rank = idx + 1;
+      // Determine rank outline class
+      let rankOutlineClass = '';
+      if (rank === 1) rankOutlineClass = 'rank-gold';
+      else if (rank === 2) rankOutlineClass = 'rank-silver';
+      else if (rank === 3) rankOutlineClass = 'rank-bronze';
+      
       const tierClass = getTierClass(p.tier);
       const region = p.region || '🌍';
       const username = p.username;
@@ -212,7 +233,7 @@
       else if (staffIcon) nameHtml += `<span class="staff-badge-mini" title="${p.staff_role}">${staffIcon}</span>`;
       
       html += `
-        <div class="row" data-username="${username}" onclick="showPlayerModal('${username}')">
+        <div class="row ${rankOutlineClass}" data-username="${username}" onclick="showPlayerModal('${username}')">
           <div class="rank-col">${rank}</div>
           <div class="player-info">
             <img class="player-skin" src="${skinUrl}" alt="${username}" onerror="this.src='https://minotar.net/helm/Steve/40.png'">
@@ -245,7 +266,7 @@
     const modal = document.getElementById('playerModal');
     const content = document.getElementById('modalContent');
     const link = document.getElementById('viewFullProfileBtn');
-    const points = POINTS_MAP[player.tier] || 0;
+    const points = calculateTotalPoints(player);
     const tierClass = getTierClass(player.tier);
     const skinUrl = `https://minotar.net/helm/${player.username}/100.png`;
     const displayName = player.nickname || player.username;
