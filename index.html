@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Pixel Craft Tierlist</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-</head>
 
+</head>
 <body>
 
 <div class="bg"></div>
@@ -16,22 +17,32 @@
 <header class="topbar glass">
   <img src="assets/logo.png" class="logo">
 
-  <input id="search" placeholder="Search players...">
+  <div class="search-box">
+    <input id="search" placeholder="Search players...">
+  </div>
 
   <a href="https://discord.gg/jqPt6a563h" target="_blank" class="discord-btn">
-    <img src="assets/discord.png"> Join & Get Tier Tested
+    <img src="assets/discord.png">
+    Get Tier Tested
   </a>
 </header>
 
 <nav id="tabs" class="tabs glass"></nav>
 
 <main class="main">
-  <h1 id="title">Overall Rankings</h1>
 
-  <div id="loading"><div class="spinner"></div></div>
-  <div id="skeletons"></div>
+  <div class="header">
+    <h1 id="title">Overall Rankings</h1>
+    <span id="count">Loading...</span>
+  </div>
+
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <span>Loading rankings...</span>
+  </div>
 
   <div id="list"></div>
+
 </main>
 
 <script type="module" src="app.js"></script>
