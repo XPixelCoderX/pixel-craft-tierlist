@@ -12,9 +12,16 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-glow"></div>
+  <!-- Animated Background Layers -->
+  <div class="animated-bg">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="pixel-overlay"></div>
+    <canvas id="particleCanvas"></canvas>
+  </div>
   <div class="bg-noise"></div>
-  
+
   <!-- IP Corner -->
   <div class="ip-corner">
     <div class="ip-box">
@@ -54,10 +61,9 @@
       </div>
     </header>
 
-    <!-- Gamemode strip -->
+    <!-- Gamemode Chips -->
     <div class="gamemode-strip" id="gamemodeStrip"></div>
 
-    <!-- Leaderboard -->
     <main>
       <div class="leaderboard-wrapper">
         <div class="table-header">
@@ -71,8 +77,11 @@
         <div id="skeletonContainer" class="skeleton-container"></div>
         <div id="leaderboardRows" class="leaderboard-rows" style="display: none;"></div>
         <div id="emptyState" class="empty-state" style="display: none;">
-          <i class="fas fa-database"></i>
-          <p>No players found</p>
+          <div class="empty-state-content">
+            <i class="fas fa-users-slash"></i>
+            <h3>No players found</h3>
+            <p>Add some players to the database to get started.</p>
+          </div>
         </div>
       </div>
     </main>
@@ -82,16 +91,18 @@
     </footer>
   </div>
 
-  <!-- Player Modal (quick view) -->
+  <!-- Player Quick‑View Modal -->
   <div id="playerModal" class="modal-overlay" style="display: none;">
     <div class="modal-card">
       <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
       <div id="modalContent" class="modal-content"></div>
       <div class="modal-actions">
-        <a href="#" id="viewFullProfileBtn" class="btn-primary" target="_blank">View Full Profile <i class="fas fa-arrow-right"></i></a>
+        <a href="#" id="viewFullProfileBtn" class="btn-primary">View Full Profile <i class="fas fa-arrow-right"></i></a>
       </div>
     </div>
   </div>
+
+  <!-- Right‑Click Context Menu (injected by JS) -->
 
   <script src="supabase.js"></script>
   <script src="gamemodes.js"></script>
@@ -101,6 +112,7 @@
       renderSkeletons(5);
       renderGamemodeStrip();
       initCopyButtons();
+      initParticles();
     });
   </script>
 </body>
