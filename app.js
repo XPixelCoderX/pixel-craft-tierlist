@@ -1,4 +1,4 @@
-// app.js - Leaderboard with ranking, tier points, skeletons, popup
+// app.js - Pixel Craft Tierlist
 const POINTS_MAP = {
   'HT1': 60, 'LT1': 50,
   'HT2': 40, 'LT2': 30,
@@ -9,15 +9,31 @@ const POINTS_MAP = {
 
 let allPlayers = [];
 let currentFilter = 'ALL';
+let currentGamemode = 'overall';
 
-// Tier CSS class mapping
 function getTierClass(tier) {
   return `tier-${tier.toLowerCase()}`;
 }
 
-// Render skeletons
+// Copy IP buttons
+function initCopyButtons() {
+  document.querySelectorAll('.copy-ip').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const ip = btn.dataset.ip;
+      navigator.clipboard?.writeText(ip).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => btn.innerHTML = original, 1500);
+      }).catch(() => alert('Copy manually: ' + ip));
+    });
+  });
+}
+
+// Skeletons
 function renderSkeletons(count = 5) {
   const container = document.getElementById('skeletonContainer');
+  if (!container) return;
   container.innerHTML = '';
   for (let i = 0; i < count; i++) {
     const skel = document.createElement('div');
@@ -36,7 +52,7 @@ function renderSkeletons(count = 5) {
   }
 }
 
-// Fetch and display
+// Fetch data
 async function loadLeaderboard() {
   const rowsDiv = document.getElementById('leaderboardRows');
   const skeletonDiv = document.getElementById('skeletonContainer');
@@ -47,37 +63,28 @@ async function loadLeaderboard() {
   emptyDiv.style.display = 'none';
   
   try {
-    const { data, error } = await supabase
-      .from('players')
-      .select('*');
-    
+    const { data, error } = await supabase.from('players').select('*');
     if (error) throw error;
-    
     allPlayers = data || [];
-    applyFilterAndSort();
+    applyFiltersAndSort();
   } catch (err) {
     console.error('Fetch error:', err);
     skeletonDiv.style.display = 'none';
     emptyDiv.style.display = 'flex';
-    emptyDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i><p>Failed to load data. Check console.</p>`;
+    emptyDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Failed to load data</p>';
   }
 }
 
-function applyFilterAndSort() {
+function applyFiltersAndSort() {
   const filterVal = document.getElementById('regionFilterSelect').value;
   currentFilter = filterVal;
   
   let filtered = [...allPlayers];
-  if (filterVal !== 'ALL') {
-    filtered = filtered.filter(p => p.region === filterVal);
-  }
+  if (filterVal !== 'ALL') filtered = filtered.filter(p => p.region === filterVal);
+  if (currentGamemode !== 'overall') filtered = filtered.filter(p => p.gamemode === currentGamemode);
   
-  // Calculate points and sort
-  filtered = filtered.map(p => ({
-    ...p,
-    points: POINTS_MAP[p.tier] || 0
-  })).sort((a, b) => b.points - a.points);
-  
+  filtered = filtered.map(p => ({ ...p, points: POINTS_MAP[p.tier] || 0 }))
+                     .sort((a, b) => b.points - a.points);
   renderRows(filtered);
 }
 
@@ -87,13 +94,11 @@ function renderRows(players) {
   const emptyDiv = document.getElementById('emptyState');
   
   skeletonDiv.style.display = 'none';
-  
   if (!players.length) {
     rowsDiv.style.display = 'none';
     emptyDiv.style.display = 'flex';
     return;
   }
-  
   rowsDiv.style.display = 'block';
   emptyDiv.style.display = 'none';
   
@@ -101,56 +106,52 @@ function renderRows(players) {
   players.forEach((player, idx) => {
     const rank = idx + 1;
     const tierClass = getTierClass(player.tier);
-    const regionDisplay = player.region || '🌍';
+    const region = player.region || '🌍';
+    const username = player.username || 'Steve';
+    const skinUrl = `https://minotar.net/helm/${username}/40.png`;
     
     html += `
-      <div class="row" onclick="showPlayerModal('${player.id}')" data-player-id="${player.id}">
+      <div class="row" onclick="showPlayerModal('${player.id}')">
         <div class="rank-col">${rank}</div>
         <div class="player-info">
-          <div class="player-avatar">${player.username?.charAt(0) || '?'}</div>
-          <span class="player-name">${player.username || 'Unknown'}</span>
+          <img class="player-skin" src="${skinUrl}" alt="${username}" loading="lazy" onerror="this.src='https://minotar.net/helm/Steve/40.png'">
+          <span class="player-name">${username}</span>
         </div>
         <div class="tier-col">
-          <div class="tier-bubble ${tierClass}" title="${player.tier} • ${POINTS_MAP[player.tier] || 0} pts">${player.tier}</div>
+          <div class="tier-bubble ${tierClass}" title="${player.tier} • ${POINTS_MAP[player.tier]} pts">${player.tier}</div>
         </div>
-        <div class="region-col"><span class="region-tag">${regionDisplay}</span></div>
+        <div class="region-col"><span class="region-tag">${region}</span></div>
         <div class="points-col">${player.points}</div>
       </div>
     `;
   });
-  
   rowsDiv.innerHTML = html;
-  
-  // Re-attach tooltips via title (native)
 }
 
-// Modal popup
+// Modal
 function showPlayerModal(playerId) {
   const player = allPlayers.find(p => p.id === playerId);
   if (!player) return;
-  
   const modal = document.getElementById('playerModal');
   const content = document.getElementById('modalContent');
-  const profileLink = document.getElementById('viewFullProfileBtn');
-  
+  const link = document.getElementById('viewFullProfileBtn');
   const points = POINTS_MAP[player.tier] || 0;
   const tierClass = getTierClass(player.tier);
+  const username = player.username || 'Steve';
+  const skinUrl = `https://minotar.net/helm/${username}/100.png`;
   
   content.innerHTML = `
     <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
-      <div class="tier-bubble ${tierClass}" style="width:72px; height:72px; font-size:1.4rem;">${player.tier}</div>
-      <h2 style="margin:4px 0 0;">${player.username}</h2>
-      <div style="display:flex; gap:24px; margin: 8px 0;">
+      <img src="${skinUrl}" style="width:80px; height:80px; image-rendering:crisp-edges; border-radius:12px; box-shadow:0 6px 0 #0a1520,0 0 0 2px #2a5f8a;">
+      <div class="tier-bubble ${tierClass}" style="width:64px;height:64px;font-size:1.2rem;">${player.tier}</div>
+      <h2>${username}</h2>
+      <div style="display:flex; gap:24px;">
         <div><i class="fas fa-trophy"></i> ${points} pts</div>
         <div><i class="fas fa-globe"></i> ${player.region || 'Global'}</div>
       </div>
-      <div style="background:#0b1a2a; padding:12px 16px; border-radius:24px; width:100%;">
-        <p><i class="fas fa-gamepad"></i> Wins: ${player.wins || 0} &nbsp;|&nbsp; Games: ${player.games_played || 0}</p>
-      </div>
     </div>
   `;
-  
-  profileLink.href = `player.html?id=${player.id}`;
+  link.href = `player.html?id=${player.id}`;
   modal.style.display = 'flex';
 }
 
@@ -158,15 +159,31 @@ function closeModal() {
   document.getElementById('playerModal').style.display = 'none';
 }
 
+// Gamemode strip
+function renderGamemodeStrip() {
+  const strip = document.getElementById('gamemodeStrip');
+  if (!strip || typeof gamemodes === 'undefined') return;
+  let html = '';
+  gamemodes.forEach(mode => {
+    const active = mode === currentGamemode ? 'active' : '';
+    html += `<div class="gamemode-chip ${active}" data-mode="${mode}">${mode.replace(/([A-Z])/g,' $1').trim()}</div>`;
+  });
+  strip.innerHTML = html;
+  strip.querySelectorAll('.gamemode-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      currentGamemode = chip.dataset.mode;
+      renderGamemodeStrip();
+      applyFiltersAndSort();
+    });
+  });
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
   loadLeaderboard();
-  
   const filterSelect = document.getElementById('regionFilterSelect');
-  if (filterSelect) {
-    filterSelect.addEventListener('change', applyFilterAndSort);
-  }
-  
+  if (filterSelect) filterSelect.addEventListener('change', applyFiltersAndSort);
   window.closeModal = closeModal;
   window.showPlayerModal = showPlayerModal;
+  window.initCopyButtons = initCopyButtons;
 });
