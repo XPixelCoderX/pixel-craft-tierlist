@@ -1,6 +1,11 @@
-// supabase.js – shared Supabase client
-const SUPABASE_URL = 'https://iphmjgrhkrhubgqqpgac.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwaG1qZ3Joa3JodWJncXFwZ2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTkyOTEsImV4cCI6MjA5MTY3NTI5MX0.iQ4kpMqVEcPxZdkTYXlmP6f8r6M8GkkJtSzXB28c0oY';
+// supabase.js – Pixel Craft Tierlist
+(function() {
+  const SUPABASE_URL = 'https://iphmjgrhkrhubgqqpgac.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwaG1qZ3Joa3JodWJncXFwZ2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTkyOTEsImV4cCI6MjA5MTY3NTI5MX0.iQ4kpMqVEcPxZdkTYXlmP6f8r6M8GkkJtSzXB28c0oY';
 
-// Create a single instance
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Create a single client and attach to window
+  window.supabase = window.supabase || window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!window.supabase) {
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+})();
