@@ -16,7 +16,7 @@ function createTabs() {
   gamemodes.forEach(mode => {
     const tab = document.createElement("div");
     tab.className = "tab";
-    tab.innerText = mode;
+    tab.innerText = formatGamemode(mode);
 
     tab.onclick = () => {
       currentMode = mode;
