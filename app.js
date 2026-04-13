@@ -1,166 +1,79 @@
 import { gamemodes } from "./gamemodes.js";
 import { supabase } from "./supabase.js";
 
-const navbar = document.getElementById("navbar");
-const tierlist = document.getElementById("tierlist");
-const header = document.getElementById("gamemodeHeader");
+const tabs = document.getElementById("tabs");
+const list = document.getElementById("list");
 
-let currentMode = "overall";
+let mode = "overall";
 
 /* POINT SYSTEM */
-function getPoints(rank) {
-  const r = rank.toLowerCase();
-  if (r === "ht1") return 100;
-  if (r === "ht2") return 90;
-  if (r === "ht3") return 80;
-  if (r === "lt1") return 70;
-  if (r === "lt2") return 60;
-  if (r === "lt3") return 50;
-  return 0;
-}
+const pts = { ht1:100, ht2:90, ht3:80, lt1:70, lt2:60, lt3:50 };
 
-/* FORMAT */
-function format(name) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-/* NAVBAR */
-function createTabs() {
-  gamemodes.forEach(mode => {
-    const tab = document.createElement("div");
-    tab.className = "tab";
-
-    const img = document.createElement("img");
-    img.src = `assets/gamemodes/${mode}.png`;
-
-    const text = document.createElement("span");
-    text.innerText = format(mode);
-
-    tab.appendChild(img);
-    tab.appendChild(text);
-
-    tab.onclick = () => {
-      currentMode = mode;
-
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-
-      loadPlayers();
-    };
-
-    navbar.appendChild(tab);
-  });
-
-  navbar.firstChild.classList.add("active");
-}
-
-/* HEADER */
-function renderHeader() {
-  header.innerHTML = `
-    <img src="assets/gamemodes/${currentMode}.png">
-    <h2>${format(currentMode)}</h2>
-  `;
-}
-
-/* LOAD */
-async function loadPlayers() {
-  renderHeader();
-
-  if (currentMode === "overall") {
-    const { data } = await supabase.from("players").select("*");
-
-    const totals = {};
-
-    data.forEach(p => {
-      const pts = getPoints(p.rank);
-      if (!totals[p.name]) totals[p.name] = 0;
-      totals[p.name] += pts;
-    });
-
-    const sorted = Object.entries(totals)
-      .sort((a, b) => b[1] - a[1]);
-
-    tierlist.innerHTML = sorted.map(([name, pts], i) => {
-      let cls = "";
-      if (i === 0) cls = "first";
-      if (i === 1) cls = "second";
-      if (i === 2) cls = "third";
-
-      return `
-        <div class="player ${cls}" onclick="openProfile('${name}')">
-          #${i+1} ${name} - ${pts} pts
-        </div>
-      `;
-    }).join("");
-
-    return;
-  }
-
-  const { data } = await supabase
-    .from("players")
-    .select("*")
-    .eq("gamemode", currentMode);
-
-  const tiers = {
-    ht1: [], ht2: [], ht3: [],
-    lt1: [], lt2: [], lt3: [],
-    na: []
-  };
-
-  data.forEach(p => {
-    const rank = p.rank.toLowerCase();
-    if (tiers[rank]) tiers[rank].push(p);
-    else tiers.na.push(p);
-  });
-
-  tierlist.innerHTML = "";
-
-  Object.keys(tiers).forEach(tier => {
-    const div = document.createElement("div");
-
-    div.innerHTML = `
-      <div class="tier-title ${tier}">${tier.toUpperCase()}</div>
-      <div>
-        ${tiers[tier].map(p => `
-          <div class="player" onclick="openProfile('${p.name}')">
-            ${p.name} (${getPoints(p.rank)} pts)
-          </div>
-        `).join("")}
-      </div>
-    `;
-
-    tierlist.appendChild(div);
-  });
-}
-
-/* PROFILE */
-window.openProfile = async function(name) {
-  const { data } = await supabase
-    .from("players")
-    .select("*")
-    .eq("name", name);
-
-  let total = 0;
-
-  const rows = data.map(p => {
-    const pts = getPoints(p.rank);
-    total += pts;
-
-    return `
-      <div class="player">
-        ${p.gamemode} - ${p.rank.toUpperCase()} (${pts})
-      </div>
-    `;
-  }).join("");
-
-  tierlist.innerHTML = `
-    <h2>${name}</h2>
-    <h3>Total Points: ${total}</h3>
-    ${rows}
-    <br>
-    <button onclick="location.reload()">Back</button>
-  `;
+/* FORMAT NAMES */
+const names = {
+  fireballmace:"Fireball Mace",
+  fireballfight:"Fireball Fight",
+  elytraspear:"Elytra-Spear",
+  elytramace:"Elytra-Mace",
+  battlerush:"BattleRush",
+  bedfight:"BedFight",
+  crystaldiamond:"Crystal Diamond",
+  diamondsmp:"Diamond SMP",
+  shieldlessuhc:"Shieldless UHC",
+  skywars:"SkyWars",
+  smp:"SMP",
+  sg:"SG",
+  overall:"Overall"
 };
 
-createTabs();
-loadPlayers();
+const format = n => names[n] || n;
+
+/* CREATE TABS */
+gamemodes.forEach(g => {
+  const t = document.createElement("div");
+  t.className="tab";
+  t.innerHTML=`<img src="assets/gamemodes/${g}.png">`;
+
+  t.onclick=()=>{
+    mode=g;
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    load();
+  };
+
+  tabs.appendChild(t);
+});
+
+tabs.firstChild.classList.add("active");
+
+/* LOAD DATA */
+async function load() {
+  const { data } = await supabase.from("players").select("*");
+
+  let map={};
+
+  data.forEach(p=>{
+    let val = pts[p.rank.toLowerCase()] || 0;
+    if(!map[p.name]) map[p.name]=0;
+    map[p.name]+=val;
+  });
+
+  let arr = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+
+  list.innerHTML = arr.map(([name,points],i)=>{
+    let cls = i===0?"first":i===1?"second":i===2?"third":"";
+
+    return `
+    <div class="card ${cls}">
+      <div class="player">
+        <img class="avatar" src="https://render.crafty.gg/3d/bust/${name}">
+        <strong>#${i+1} ${name}</strong>
+      </div>
+      <div class="points">
+        <strong>${points}</strong><br>PTS
+      </div>
+    </div>`;
+  }).join("");
+}
+
+load();
