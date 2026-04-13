@@ -1,8 +1,8 @@
 body {
-  font-family: Arial, sans-serif;
+  margin: 0;
+  font-family: Arial;
   background: #0b0b0f;
   color: white;
-  margin: 0;
 }
 
 /* TITLE */
@@ -20,57 +20,82 @@ h1 {
   gap: 8px;
   padding: 10px;
   background: #111;
-  border-bottom: 2px solid #222;
 }
 
 .tab {
-  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
   background: #1a1a1a;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s;
+  font-size: 13px;
 }
 
-.tab:hover {
-  background: #333;
+.tab img {
+  width: 18px;
+  height: 18px;
 }
 
 .tab.active {
   background: #5865f2;
 }
 
-/* PLAYER LIST */
-#tierlist {
-  padding: 20px;
+/* HEADER */
+#gamemodeHeader {
+  text-align: center;
+  margin: 20px;
+}
+
+#gamemodeHeader img {
+  width: 64px;
+  height: 64px;
+}
+
+/* TIERS */
+.tier {
+  margin: 10px auto;
   max-width: 800px;
-  margin: auto;
-}
-
-/* PLAYER CARD */
-.player {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  margin-bottom: 8px;
-  background: #15151c;
   border-radius: 8px;
-  border-left: 5px solid #444;
+  overflow: hidden;
 }
 
-/* RANK COLORS */
-.rank-ht { border-left-color: #00ff99; }
-.rank-lt { border-left-color: #ffcc00; }
-.rank-na { border-left-color: #666; }
+.tier-title {
+  padding: 8px;
+  font-weight: bold;
+}
 
-/* CORNER BOX */
+.tier-players {
+  padding: 10px;
+  background: #15151c;
+}
+
+/* COLORS */
+.ht1 { background: #00ff99; color: black; }
+.ht2 { background: #33ffbb; color: black; }
+.ht3 { background: #66ffcc; color: black; }
+
+.lt1 { background: #ffcc00; color: black; }
+.lt2 { background: #ffaa00; color: black; }
+.lt3 { background: #ff8800; color: black; }
+
+.na { background: #555; }
+
+/* PLAYER */
+.player {
+  padding: 6px;
+  margin: 4px 0;
+  background: #222;
+  border-radius: 5px;
+}
+
+/* CORNER */
 .corner {
   position: fixed;
-  bottom: 12px;
-  right: 12px;
+  bottom: 10px;
+  right: 10px;
   background: #111;
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  border: 1px solid #222;
+  padding: 10px;
+  border-radius: 8px;
 }
