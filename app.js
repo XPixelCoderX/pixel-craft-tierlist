@@ -1,7 +1,7 @@
 // app.js - Pixel Craft Tierlist (fixed)
 (function() {
-  // Use the existing supabase client from window
-  const supabase = window.supabase;
+  // Use the Supabase client from unique global
+  const supabase = window.pixelSupabase;
   if (!supabase) {
     console.error('Supabase client not available');
     return;
@@ -192,7 +192,6 @@
   window.showPlayerModal = showPlayerModal;
   window.closeModal = closeModal;
   window.renderGamemodeStrip = renderGamemodeStrip;
-  window.loadLeaderboard = loadLeaderboard; // optional
 
   // Event listeners
   document.addEventListener('DOMContentLoaded', () => {
