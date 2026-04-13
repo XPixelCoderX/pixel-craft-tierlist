@@ -3,59 +3,83 @@ import { supabase } from "./supabase.js";
 
 const navbar = document.getElementById("navbar");
 const tierlist = document.getElementById("tierlist");
+const header = document.getElementById("gamemodeHeader");
 
 let currentMode = gamemodes[0];
 
-function formatGamemode(name) {
-  return name
-    .replace(/([a-z])([A-Z])/g, "$1 $2") // handles camelCase if needed
-    .replace(/(^|\s)\S/g, l => l.toUpperCase()); // capitalize words
+function format(name) {
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 function createTabs() {
   gamemodes.forEach(mode => {
     const tab = document.createElement("div");
     tab.className = "tab";
-    tab.innerText = formatGamemode(mode);
+
+    const img = document.createElement("img");
+    img.src = `assets/gamemodes/${mode}.png`;
+
+    const text = document.createElement("span");
+    text.innerText = format(mode);
+
+    tab.appendChild(img);
+    tab.appendChild(text);
 
     tab.onclick = () => {
       currentMode = mode;
+
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
       loadPlayers();
     };
 
     navbar.appendChild(tab);
   });
+
+  navbar.firstChild.classList.add("active");
+}
+
+function renderHeader() {
+  header.innerHTML = `
+    <img src="assets/gamemodes/${currentMode}.png">
+    <h2>${format(currentMode)}</h2>
+  `;
 }
 
 async function loadPlayers() {
-  tierlist.innerHTML = "Loading...";
+  renderHeader();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("players")
     .select("*")
     .eq("gamemode", currentMode);
 
-  if (error) {
-    tierlist.innerHTML = "Error loading players";
-    return;
-  }
+  const tiers = {
+    ht1: [], ht2: [], ht3: [],
+    lt1: [], lt2: [], lt3: [],
+    na: []
+  };
+
+  data.forEach(p => {
+    const rank = p.rank.toLowerCase();
+    if (tiers[rank]) tiers[rank].push(p.name);
+    else tiers.na.push(p.name);
+  });
 
   tierlist.innerHTML = "";
 
-  if (data.length === 0) {
-    tierlist.innerHTML = "No players yet (N/A)";
-    return;
-  }
-
-  data.forEach(player => {
+  Object.keys(tiers).forEach(tier => {
     const div = document.createElement("div");
-    let rankClass = "rank-na";
+    div.className = "tier";
 
-    if (player.rank.toLowerCase().startsWith("ht")) rankClass = "rank-ht";
-    if (player.rank.toLowerCase().startsWith("lt")) rankClass = "rank-lt";
+    div.innerHTML = `
+      <div class="tier-title ${tier}">${tier.toUpperCase()}</div>
+      <div class="tier-players">
+        ${tiers[tier].map(p => `<div class="player">${p}</div>`).join("")}
+      </div>
+    `;
 
-    div.className = `player ${rankClass}`;
-    div.innerText = `${player.name} - ${player.rank}`;
     tierlist.appendChild(div);
   });
 }
