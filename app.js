@@ -1,6 +1,5 @@
 // app.js - Pixel Craft Tierlist (fixed)
 (function() {
-  // Use the Supabase client from unique global
   const supabase = window.pixelSupabase;
   if (!supabase) {
     console.error('Supabase client not available');
@@ -186,14 +185,13 @@
     });
   }
 
-  // Attach public functions to window
+  // Expose functions
   window.renderSkeletons = renderSkeletons;
   window.initCopyButtons = initCopyButtons;
   window.showPlayerModal = showPlayerModal;
   window.closeModal = closeModal;
   window.renderGamemodeStrip = renderGamemodeStrip;
 
-  // Event listeners
   document.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
     const filterSelect = document.getElementById('regionFilterSelect');
