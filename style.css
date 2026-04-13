@@ -1,1 +1,39 @@
+body {
+  font-family: Arial;
+  background: #0f0f0f;
+  color: white;
+}
 
+#navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab {
+  padding: 8px 12px;
+  background: #222;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tab:hover {
+  background: #444;
+}
+
+.player {
+  padding: 6px;
+  margin: 4px;
+  background: #1a1a1a;
+  border-radius: 5px;
+}
+
+.corner {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+}
