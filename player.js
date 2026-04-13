@@ -1,7 +1,11 @@
-// player.js - Full Profile (Fixed)
+// player.js - Full Profile (Fixed with direct query)
 (function() {
   const supabase = window.pixelSupabase;
-  if (!supabase) return;
+  if (!supabase) {
+    console.error('Supabase client not found');
+    document.getElementById('playerProfileContent').innerHTML = '<p style="color:red;">Supabase client not loaded.</p>';
+    return;
+  }
 
   const POINTS_MAP = {
     'HT1':60,'LT1':50,'HT2':40,'LT2':30,'HT3':20,'LT3':15,'HT4':10,'LT4':5,'HT5':2,'LT5':1
@@ -92,18 +96,41 @@
     const params = new URLSearchParams(window.location.search);
     const username = params.get('user');
     const container = document.getElementById('playerProfileContent');
-    if (!username) { container.innerHTML = '<p>No username provided.</p>'; return; }
+    
+    if (!username) {
+      container.innerHTML = '<p>No username provided.</p>';
+      return;
+    }
 
     try {
-      const { data: allPlayers, error: allErr } = await supabase.from('players').select('*');
-      if (allErr) throw allErr;
-      const player = allPlayers.find(p => p.username === username);
+      // Direct query by username
+      const { data: player, error } = await supabase
+        .from('players')
+        .select('*')
+        .eq('username', username)
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(error.message || 'Player not found');
+      }
       if (!player) throw new Error('Player not found');
 
-      // Calculate overall rank using total points
-      const playersWithPoints = allPlayers.map(p => ({ ...p, points: calculateTotalPoints(p) }));
-      playersWithPoints.sort((a,b) => b.points - a.points);
-      const rank = playersWithPoints.findIndex(p => p.username === username) + 1;
+      // Fetch all players to calculate rank (still needed)
+      const { data: allPlayers, error: allErr } = await supabase.from('players').select('username,tier,gamemode_tiers');
+      if (allErr) {
+        console.warn('Could not fetch all players for rank calculation:', allErr);
+      }
+
+      let rank = '?';
+      if (allPlayers) {
+        const playersWithPoints = allPlayers.map(p => ({
+          ...p,
+          points: calculateTotalPoints(p)
+        }));
+        playersWithPoints.sort((a,b) => b.points - a.points);
+        rank = playersWithPoints.findIndex(p => p.username === username) + 1;
+      }
 
       const points = calculateTotalPoints(player);
       const tierClass = getTierClass(player.tier);
@@ -140,7 +167,7 @@
       let ringsHtml = '';
       sortedModes.forEach(item => {
         const ringClass = getRingClass(item.tier);
-        const iconSvg = getGamemodeIconSvg(item.mode);
+        const iconSvg = typeof getGamemodeIconSvg === 'function' ? getGamemodeIconSvg(item.mode) : '<i class="fas fa-gamepad"></i>';
         ringsHtml += `
           <div class="gamemode-ring-item">
             <div class="gamemode-ring ${ringClass}">
@@ -153,7 +180,7 @@
       });
 
       container.innerHTML = `
-        <div class="profile-header" oncontextmenu="return false;">
+        <div class="profile-header">
           <img src="${skinUrl}" class="profile-skin-large" alt="${player.username}" onerror="this.src='https://minotar.net/armor/bust/Steve/180.png'">
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;">
             <h1 style="font-size:2.5rem;">${displayName}</h1>
@@ -186,7 +213,8 @@
       card.addEventListener('contextmenu', (e) => showProfileContextMenu(e, player));
 
     } catch (err) {
-      container.innerHTML = '<p>Player not found.</p>';
+      console.error('Profile load error:', err);
+      container.innerHTML = `<p style="color: #ff8a8a;">Error: ${err.message}</p>`;
     }
   }
 
