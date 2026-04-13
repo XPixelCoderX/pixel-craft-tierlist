@@ -6,6 +6,12 @@ const tierlist = document.getElementById("tierlist");
 
 let currentMode = gamemodes[0];
 
+function formatGamemode(name) {
+  return name
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // handles camelCase if needed
+    .replace(/(^|\s)\S/g, l => l.toUpperCase()); // capitalize words
+}
+
 function createTabs() {
   gamemodes.forEach(mode => {
     const tab = document.createElement("div");
