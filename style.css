@@ -570,11 +570,12 @@ body {
 }
 .stat-card i { font-size: 1.8rem; color: #6eb5ff; margin-bottom: 10px; }
 
-/* Gamemode Rings Display */
+/* -------------------- GAMEMODE RINGS (PROFILE PAGE) ------------------- */
 .gamemode-rings-section {
   margin-top: 30px;
   width: 100%;
 }
+
 .gamemode-rings-title {
   font-size: 1.3rem;
   font-weight: 700;
@@ -584,21 +585,24 @@ body {
   align-items: center;
   gap: 8px;
 }
+
 .gamemode-rings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 20px;
   justify-items: center;
 }
+
 .gamemode-ring-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
+
 .gamemode-ring {
-  width: 80px;
-  height: 80px;
+  width: 90px;                /* increased from 80px */
+  height: 90px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -607,25 +611,70 @@ body {
   box-shadow: 0 6px 0 #0a1520, 0 0 0 3px;
   transition: transform 0.2s;
 }
-.gamemode-ring.gold { box-shadow: 0 6px 0 #7a5c00, 0 0 15px #ffd966, 0 0 0 3px #fbbf24; }
-.gamemode-ring.silver { box-shadow: 0 6px 0 #4a5568, 0 0 12px #cbd5e1, 0 0 0 3px #94a3b8; }
-.gamemode-ring.bronze { box-shadow: 0 6px 0 #6e3f1a, 0 0 10px #cd7f32, 0 0 0 3px #b87333; }
-.gamemode-ring i, .gamemode-ring svg {
-  width: 48px;
-  height: 48px;
+
+.gamemode-ring.gold {
+  box-shadow: 0 6px 0 #7a5c00, 0 0 15px #ffd966, 0 0 0 3px #fbbf24;
+}
+
+.gamemode-ring.silver {
+  box-shadow: 0 6px 0 #4a5568, 0 0 12px #cbd5e1, 0 0 0 3px #94a3b8;
+}
+
+.gamemode-ring.bronze {
+  box-shadow: 0 6px 0 #6e3f1a, 0 0 10px #cd7f32, 0 0 0 3px #b87333;
+}
+
+.gamemode-ring i,
+.gamemode-ring svg,
+.gamemode-ring img {
+  width: 64px;                /* increased from 48px */
+  height: 64px;
   color: white;
   filter: drop-shadow(0 2px 2px black);
+  object-fit: contain;        /* ensures SVGs scale properly */
 }
-.gamemode-ring img { width: 48px; height: 48px; }
+
+.gamemode-ring i {
+  font-size: 64px;            /* for Font Awesome icons */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .gamemode-ring-text {
   font-weight: 700;
   font-size: 0.9rem;
   text-transform: uppercase;
   color: #c4d9ff;
+  text-align: center;
+  word-break: break-word;
+  max-width: 100px;
 }
+
 .gamemode-tier-text {
   font-size: 0.8rem;
   color: #8ba9d2;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .gamemode-rings-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .gamemode-ring {
+    width: 80px;
+    height: 80px;
+  }
+  .gamemode-ring i,
+  .gamemode-ring svg,
+  .gamemode-ring img {
+    width: 56px;
+    height: 56px;
+  }
+  .gamemode-ring i {
+    font-size: 56px;
+  }
 }
 
 /* -------------------- RIGHT-CLICK CONTEXT MENU ------------------- */
