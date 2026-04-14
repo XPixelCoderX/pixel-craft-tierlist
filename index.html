@@ -64,6 +64,13 @@
     <!-- Gamemode Chips -->
     <div class="gamemode-strip" id="gamemodeStrip"></div>
 
+    <!-- Search Bar -->
+    <div class="search-container">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" id="searchInput" placeholder="Search by username or nickname..." class="search-input">
+      <button id="clearSearchBtn" class="clear-search-btn" style="display: none;"><i class="fas fa-times"></i></button>
+    </div>
+
     <main>
       <div class="leaderboard-wrapper">
         <div class="table-header">
@@ -80,14 +87,21 @@
           <div class="empty-state-content">
             <i class="fas fa-users-slash"></i>
             <h3>No players found</h3>
-            <p>Add some players to the database to get started.</p>
+            <p>Try adjusting your search or filters.</p>
           </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+          <button id="prevPageBtn" class="pagination-btn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+          <span id="pageInfo" class="page-info">Page 1 of 1</span>
+          <button id="nextPageBtn" class="pagination-btn" disabled>Next <i class="fas fa-chevron-right"></i></button>
         </div>
       </div>
     </main>
 
     <footer class="main-footer">
-      <p>HT1 (60) • LT1 (50) • HT2 (40) • LT2 (30) • HT3 (20) • LT3 (15) • HT4 (10) • LT4 (5) • HT5 (2) • LT5 (1)   MAX: 1,800</p>
+      <p>⚡ HT1 (60) • LT1 (50) • HT2 (40) • LT2 (30) • HT3 (20) • LT3 (15) • HT4 (10) • LT4 (5) • HT5 (2) • LT5 (1)</p>
     </footer>
   </div>
 
@@ -102,17 +116,16 @@
     </div>
   </div>
 
-  <!-- Right‑Click Context Menu (injected by JS) -->
-
   <script src="supabase.js"></script>
   <script src="gamemodes.js"></script>
   <script src="app.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      renderSkeletons(5);
+      renderSkeletons(10);
       renderGamemodeStrip();
       initCopyButtons();
       initParticles();
+      initSearchAndPagination();
     });
   </script>
 </body>
