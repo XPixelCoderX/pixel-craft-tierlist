@@ -688,3 +688,105 @@ body {
   border: 2px solid #cd7f32 !important;
   box-shadow: 0 0 10px #cd7f32, 0 4px 12px #00000030 !important;
 }
+/* -------------------- SEARCH BAR ------------------- */
+.search-container {
+  position: relative;
+  margin: 20px 0 10px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 18px;
+  color: #8ba9d2;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 20px 14px 50px;
+  background: rgba(8, 22, 40, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid #1e4b70;
+  border-radius: 40px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: #6a8db5;
+  font-weight: 400;
+}
+
+.search-input:focus {
+  border-color: #3b7eb0;
+  box-shadow: 0 0 12px #3b82f6;
+  background: rgba(12, 30, 50, 0.8);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #aac8ff;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.clear-search-btn:hover {
+  background: #1e3a5a;
+  color: white;
+}
+
+/* -------------------- PAGINATION ------------------- */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 0 8px;
+  border-top: 1px solid #1e3a5a;
+  margin-top: 10px;
+}
+
+.pagination-btn {
+  background: rgba(10, 25, 45, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid #1e4b70;
+  color: #c4d9ff;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #1a3452;
+  border-color: #3b7eb0;
+  color: white;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #aac8ff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 100px;
+  text-align: center;
+}
