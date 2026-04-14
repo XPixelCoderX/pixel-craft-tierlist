@@ -1,4 +1,4 @@
-// app.js - Pixel Craft Tierlist (Per-Gamemode Tiers)
+// app.js - Pixel Craft Tierlist (with Search & Pagination)
 (function() {
   const supabase = window.pixelSupabase;
   if (!supabase) return;
@@ -8,9 +8,14 @@
     'HT4': 10, 'LT4': 5, 'HT5': 2, 'LT5': 1
   };
 
+  const PAGE_SIZE = 10; // Players per page
+
   let allPlayers = [];
+  let filteredPlayers = []; // After applying region, gamemode, search
   let currentFilter = 'ALL';
   let currentGamemode = 'overall';
+  let currentSearchTerm = '';
+  let currentPage = 1;
 
   const staffIcons = {
     'sradmin': '👑', 'admin': '🛡️', 'mod': '⚔️', 'srhelper': '✨',
@@ -19,7 +24,6 @@
 
   function getTierClass(t) { return `tier-${t.toLowerCase()}`; }
 
-  // Calculate total points (sum of all gamemode tiers) for overall
   function calculateTotalPoints(player) {
     const gamemodeTiers = player.gamemode_tiers || {};
     let total = 0;
@@ -33,23 +37,14 @@
     return total;
   }
 
-  // Get the tier and points for a specific gamemode (or overall)
   function getTierAndPointsForMode(player, mode) {
     if (mode === 'overall') {
-      return {
-        tier: player.tier,
-        points: calculateTotalPoints(player)
-      };
+      return { tier: player.tier, points: calculateTotalPoints(player) };
     } else {
       const gamemodeTiers = player.gamemode_tiers || {};
       const tier = gamemodeTiers[mode];
-      if (tier) {
-        return {
-          tier: tier,
-          points: POINTS_MAP[tier] || 0
-        };
-      }
-      return null; // player doesn't have this gamemode
+      if (tier) return { tier, points: POINTS_MAP[tier] || 0 };
+      return null;
     }
   }
 
@@ -68,7 +63,7 @@
     });
   }
 
-  // --- Particles (animated background) ---
+  // --- Particles ---
   function initParticles() {
     const canvas = document.getElementById('particleCanvas');
     if (!canvas) return;
@@ -114,8 +109,8 @@
     draw();
   }
 
-  // --- Skeletons ---
-  function renderSkeletons(count = 5) {
+  // --- Skeletons (now 10) ---
+  function renderSkeletons(count = 10) {
     const c = document.getElementById('skeletonContainer');
     if (!c) return;
     c.innerHTML = '';
@@ -146,27 +141,43 @@
       const { data, error } = await supabase.from('players').select('*');
       if (error) throw error;
       allPlayers = data || [];
-      applyFiltersAndSort();
+      applyAllFilters();
     } catch (err) {
       console.error(err);
       skel.style.display = 'none';
       empty.style.display = 'flex';
+      document.getElementById('paginationContainer').style.display = 'none';
     }
   }
 
-  function applyFiltersAndSort() {
-    const filterVal = document.getElementById('regionFilterSelect').value;
-    let filtered = [...allPlayers];
-    
+  // --- Filtering & Searching ---
+  function applyAllFilters() {
     // Region filter
-    if (filterVal !== 'ALL') filtered = filtered.filter(p => p.region === filterVal);
-    
-    // Gamemode filtering & point calculation
-    const mode = currentGamemode;
+    let filtered = [...allPlayers];
+    if (currentFilter !== 'ALL') filtered = filtered.filter(p => p.region === currentFilter);
+
+    // Gamemode filter (include only players who have that mode)
+    if (currentGamemode !== 'overall') {
+      filtered = filtered.filter(p => {
+        const tiers = p.gamemode_tiers || {};
+        return tiers[currentGamemode] !== undefined;
+      });
+    }
+
+    // Search filter (username or nickname, case-insensitive)
+    if (currentSearchTerm.trim()) {
+      const term = currentSearchTerm.trim().toLowerCase();
+      filtered = filtered.filter(p => {
+        const username = (p.username || '').toLowerCase();
+        const nickname = (p.nickname || '').toLowerCase();
+        return username.includes(term) || nickname.includes(term);
+      });
+    }
+
+    // Process with points for current gamemode
     const processed = [];
-    
     filtered.forEach(player => {
-      const result = getTierAndPointsForMode(player, mode);
+      const result = getTierAndPointsForMode(player, currentGamemode);
       if (result) {
         processed.push({
           ...player,
@@ -175,14 +186,113 @@
         });
       }
     });
-    
+
     // Sort by points descending
     processed.sort((a, b) => b.points - a.points);
-    
-    renderRows(processed);
+    filteredPlayers = processed;
+    currentPage = 1; // reset to first page
+    renderPaginatedRows();
+    updatePaginationControls();
   }
 
-  // --- Context Menu for Rows ---
+  function renderPaginatedRows() {
+    const rows = document.getElementById('leaderboardRows');
+    const skel = document.getElementById('skeletonContainer');
+    const empty = document.getElementById('emptyState');
+    const pagination = document.getElementById('paginationContainer');
+    
+    skel.style.display = 'none';
+    
+    if (!filteredPlayers.length) {
+      rows.style.display = 'none';
+      empty.style.display = 'flex';
+      pagination.style.display = 'none';
+      return;
+    }
+
+    rows.style.display = 'block';
+    empty.style.display = 'none';
+    pagination.style.display = 'flex';
+
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const endIdx = Math.min(startIdx + PAGE_SIZE, filteredPlayers.length);
+    const pagePlayers = filteredPlayers.slice(startIdx, endIdx);
+
+    let html = '';
+    pagePlayers.forEach((p, idx) => {
+      const globalRank = startIdx + idx + 1;
+      let rankOutlineClass = '';
+      if (globalRank === 1) rankOutlineClass = 'rank-gold';
+      else if (globalRank === 2) rankOutlineClass = 'rank-silver';
+      else if (globalRank === 3) rankOutlineClass = 'rank-bronze';
+
+      const displayTier = p.displayTier;
+      const tierClass = getTierClass(displayTier);
+      const region = p.region || '🌍';
+      const username = p.username;
+      const skinUrl = `https://minotar.net/helm/${username}/40.png`;
+      const displayName = p.nickname || username;
+      const isOwner = username.toLowerCase() === 'n2ab';
+      const staffIcon = staffIcons[p.staff_role] || '';
+
+      let nameHtml = `<span class="player-name">${displayName}</span>`;
+      if (isOwner) nameHtml += `<i class="fas fa-crown owner-crown" title="Owner"></i>`;
+      else if (staffIcon) nameHtml += `<span class="staff-badge-mini" title="${p.staff_role}">${staffIcon}</span>`;
+
+      html += `
+        <div class="row ${rankOutlineClass}" data-username="${username}" onclick="showPlayerModal('${username}')">
+          <div class="rank-col">${globalRank}</div>
+          <div class="player-info">
+            <img class="player-skin" src="${skinUrl}" alt="${username}" onerror="this.src='https://minotar.net/helm/Steve/40.png'">
+            <div class="player-name-container">${nameHtml}</div>
+          </div>
+          <div class="tier-col">
+            <div class="tier-bubble ${tierClass}" title="${displayTier} • ${p.points} pts">${displayTier}</div>
+          </div>
+          <div class="region-col"><span class="region-tag">${region}</span></div>
+          <div class="points-col">${p.points}</div>
+        </div>
+      `;
+    });
+    rows.innerHTML = html;
+
+    // Attach context menu
+    document.querySelectorAll('.row').forEach(row => {
+      row.addEventListener('contextmenu', (e) => {
+        const username = row.dataset.username;
+        const player = allPlayers.find(p => p.username === username);
+        if (player) showRowContextMenu(e, player);
+      });
+    });
+  }
+
+  function updatePaginationControls() {
+    const totalPages = Math.ceil(filteredPlayers.length / PAGE_SIZE);
+    const prevBtn = document.getElementById('prevPageBtn');
+    const nextBtn = document.getElementById('nextPageBtn');
+    const pageInfo = document.getElementById('pageInfo');
+
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
+
+    prevBtn.onclick = () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPaginatedRows();
+        updatePaginationControls();
+      }
+    };
+    nextBtn.onclick = () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPaginatedRows();
+        updatePaginationControls();
+      }
+    };
+  }
+
+  // --- Context Menu ---
   let contextMenu = null;
   function createContextMenu() {
     if (contextMenu) return contextMenu;
@@ -200,7 +310,7 @@
     const mode = currentGamemode;
     const tierInfo = getTierAndPointsForMode(player, mode);
     const displayTier = tierInfo ? tierInfo.tier : player.tier;
-    
+
     menu.innerHTML = `
       <div class="context-menu-item" data-action="copy-username">
         <i class="fas fa-user"></i> Copy Username
@@ -236,89 +346,26 @@
     };
   }
 
-  function renderRows(players) {
-    const rows = document.getElementById('leaderboardRows');
-    const skel = document.getElementById('skeletonContainer');
-    const empty = document.getElementById('emptyState');
-    skel.style.display = 'none';
-    
-    if (!players.length) {
-      rows.style.display = 'none';
-      empty.style.display = 'flex';
-      return;
-    }
-    
-    rows.style.display = 'block';
-    empty.style.display = 'none';
-    
-    let html = '';
-    players.forEach((p, idx) => {
-      const rank = idx + 1;
-      let rankOutlineClass = '';
-      if (rank === 1) rankOutlineClass = 'rank-gold';
-      else if (rank === 2) rankOutlineClass = 'rank-silver';
-      else if (rank === 3) rankOutlineClass = 'rank-bronze';
-      
-      const displayTier = p.displayTier;
-      const tierClass = getTierClass(displayTier);
-      const region = p.region || '🌍';
-      const username = p.username;
-      const skinUrl = `https://minotar.net/helm/${username}/40.png`;
-      const displayName = p.nickname || username;
-      const isOwner = username.toLowerCase() === 'n2ab';
-      const staffIcon = staffIcons[p.staff_role] || '';
-      
-      let nameHtml = `<span class="player-name">${displayName}</span>`;
-      if (isOwner) nameHtml += `<i class="fas fa-crown owner-crown" title="Owner"></i>`;
-      else if (staffIcon) nameHtml += `<span class="staff-badge-mini" title="${p.staff_role}">${staffIcon}</span>`;
-      
-      html += `
-        <div class="row ${rankOutlineClass}" data-username="${username}" onclick="showPlayerModal('${username}')">
-          <div class="rank-col">${rank}</div>
-          <div class="player-info">
-            <img class="player-skin" src="${skinUrl}" alt="${username}" onerror="this.src='https://minotar.net/helm/Steve/40.png'">
-            <div class="player-name-container">${nameHtml}</div>
-          </div>
-          <div class="tier-col">
-            <div class="tier-bubble ${tierClass}" title="${displayTier} • ${p.points} pts">${displayTier}</div>
-          </div>
-          <div class="region-col"><span class="region-tag">${region}</span></div>
-          <div class="points-col">${p.points}</div>
-        </div>
-      `;
-    });
-    rows.innerHTML = html;
-
-    // Attach context menu to each row
-    document.querySelectorAll('.row').forEach(row => {
-      row.addEventListener('contextmenu', (e) => {
-        const username = row.dataset.username;
-        const player = allPlayers.find(p => p.username === username);
-        if (player) showRowContextMenu(e, player);
-      });
-    });
-  }
-
   // --- Modal ---
   function showPlayerModal(username) {
     const player = allPlayers.find(p => p.username === username);
     if (!player) return;
-    
+
     const modal = document.getElementById('playerModal');
     const content = document.getElementById('modalContent');
     const link = document.getElementById('viewFullProfileBtn');
-    
+
     const mode = currentGamemode;
     const tierInfo = getTierAndPointsForMode(player, mode);
     const displayTier = tierInfo ? tierInfo.tier : player.tier;
     const points = tierInfo ? tierInfo.points : calculateTotalPoints(player);
-    
+
     const tierClass = getTierClass(displayTier);
     const skinUrl = `https://minotar.net/helm/${player.username}/100.png`;
     const displayName = player.nickname || player.username;
     const isOwner = player.username.toLowerCase() === 'n2ab';
     const staffIcon = staffIcons[player.staff_role] || '';
-    
+
     content.innerHTML = `
       <div style="display:flex; flex-direction:column; align-items:center; gap:14px;">
         <img src="${skinUrl}" style="width:90px; height:90px; image-rendering:crisp-edges; border-radius:16px; box-shadow:0 6px 0 #0a1520,0 0 0 2px #2a5f8a;">
@@ -338,7 +385,7 @@
 
   function closeModal() { document.getElementById('playerModal').style.display = 'none'; }
 
-  // --- Gamemode Strip with Icons ---
+  // --- Gamemode Strip ---
   function renderGamemodeStrip() {
     const strip = document.getElementById('gamemodeStrip');
     if (!strip || typeof gamemodes === 'undefined') return;
@@ -355,8 +402,33 @@
       chip.addEventListener('click', () => {
         currentGamemode = chip.dataset.mode;
         renderGamemodeStrip();
-        applyFiltersAndSort();
+        applyAllFilters();
       });
+    });
+  }
+
+  // --- Search & Pagination Initialization ---
+  function initSearchAndPagination() {
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+
+    searchInput.addEventListener('input', () => {
+      currentSearchTerm = searchInput.value;
+      clearBtn.style.display = currentSearchTerm ? 'block' : 'none';
+      applyAllFilters();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      currentSearchTerm = '';
+      clearBtn.style.display = 'none';
+      applyAllFilters();
+    });
+
+    // Region filter change
+    document.getElementById('regionFilterSelect').addEventListener('change', (e) => {
+      currentFilter = e.target.value;
+      applyAllFilters();
     });
   }
 
@@ -367,9 +439,9 @@
   window.showPlayerModal = showPlayerModal;
   window.closeModal = closeModal;
   window.renderGamemodeStrip = renderGamemodeStrip;
+  window.initSearchAndPagination = initSearchAndPagination;
 
   document.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
-    document.getElementById('regionFilterSelect').addEventListener('change', applyFiltersAndSort);
   });
 })();
