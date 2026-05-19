@@ -35,9 +35,7 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .form-group {
-      margin-bottom: 18px;
-    }
+    .form-group { margin-bottom: 18px; }
     label {
       display: block;
       font-weight: 600;
@@ -55,9 +53,7 @@
       outline: none;
       transition: border 0.2s;
     }
-    input:focus, select:focus {
-      border-color: #3b7eb0;
-    }
+    input:focus, select:focus { border-color: #3b7eb0; }
     select option { background: #0a1a2b; color: white; }
     button {
       width: 100%;
@@ -121,7 +117,7 @@
       <div class="form-group">
         <label>Overall Tier</label>
         <select id="overallTier">
-          <option value="">-- Leave unchanged (gamemode only) --</option>
+          <option value="">-- Leave unchanged --</option>
           <option value="HT1">HT1 (60 pts)</option>
           <option value="LT1">LT1 (50 pts)</option>
           <option value="HT2">HT2 (40 pts)</option>
@@ -160,10 +156,10 @@
   <script src="supabase.js"></script>
   <script src="gamemodes.js"></script>
   <script>
-    // Wait for Supabase client
-    const supabase = window.pixelSupabase;
-    if (!supabase) {
-      document.getElementById('loginMessage').textContent = 'Supabase not loaded.';
+    // Use a different variable name to avoid conflict with global 'supabase'
+    const client = window.pixelSupabase;
+    if (!client) {
+      document.getElementById('loginMessage').textContent = 'Database connection not loaded.';
       document.getElementById('loginMessage').className = 'message error';
     }
 
@@ -202,7 +198,7 @@
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('admins')
         .select('password_hash')
         .eq('username', username)
@@ -257,7 +253,7 @@
       const updates = {};
       if (overallTier) updates.tier = overallTier;
       if (gamemode && gamemodeTier) {
-        const { data: existing } = await supabase
+        const { data: existing } = await client
           .from('players')
           .select('gamemode_tiers')
           .eq('username', username)
@@ -273,7 +269,7 @@
         return;
       }
 
-      const { error } = await supabase
+      const { error } = await client
         .from('players')
         .upsert({ username, ...updates, region: 'NA' }, { onConflict: 'username' });
 
