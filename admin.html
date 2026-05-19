@@ -153,15 +153,13 @@
     </div>
   </div>
 
+  <!-- Your normal supabase.js (for reading, not used much here) -->
   <script src="supabase.js"></script>
   <script src="gamemodes.js"></script>
   <script>
-    // Use a different variable name to avoid conflict with global 'supabase'
-    const client = window.pixelSupabase;
-    if (!client) {
-      document.getElementById('loginMessage').textContent = 'Database connection not loaded.';
-      document.getElementById('loginMessage').className = 'message error';
-    }
+    // Use a different variable to avoid conflict with global 'supabase'
+    const client = window.pixelSupabase;   // only for reading admin data (login)
+    const EDGE_FUNCTION_URL = "https://iphmjgrhkrhubgqqpgac.supabase.co/functions/v1/admin-api";
 
     // Populate gamemode dropdown
     function populateGamemodes() {
@@ -177,7 +175,7 @@
     }
     populateGamemodes();
 
-    // SHA‑256 hash function
+    // SHA‑256 (for login only)
     async function sha256(message) {
       const msgBuffer = new TextEncoder().encode(message);
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -186,7 +184,7 @@
         .join('');
     }
 
-    // Login
+    // Login – validates against the admins table (public read)
     async function login() {
       const username = document.getElementById('loginUsername').value.trim();
       const password = document.getElementById('loginPassword').value;
@@ -202,7 +200,7 @@
         .from('admins')
         .select('password_hash')
         .eq('username', username)
-        .single();
+        .maybeSingle();   // avoids 406 if not found
 
       if (error || !data) {
         msg.textContent = 'Invalid username or password.';
@@ -215,28 +213,29 @@
         document.getElementById('loginBox').style.display = 'none';
         document.getElementById('panelBox').style.display = 'block';
         sessionStorage.setItem('adminLoggedIn', 'true');
+        sessionStorage.setItem('adminUsername', username);
+        sessionStorage.setItem('adminPassword', password); // stored temporarily for edge function calls
       } else {
         msg.textContent = 'Invalid username or password.';
         msg.className = 'message error';
       }
     }
 
-    // Logout
     function logout() {
       sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminUsername');
+      sessionStorage.removeItem('adminPassword');
       document.getElementById('loginBox').style.display = 'block';
       document.getElementById('panelBox').style.display = 'none';
-      document.getElementById('loginMessage').textContent = '';
-      document.getElementById('loginMessage').className = 'message';
     }
 
-    // Check if already logged in
+    // Auto‑login if session exists
     if (sessionStorage.getItem('adminLoggedIn') === 'true') {
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('panelBox').style.display = 'block';
     }
 
-    // Add or update player
+    // Add or update player (calls the secure edge function)
     async function addOrUpdatePlayer() {
       const username = document.getElementById('playerName').value.trim();
       const overallTier = document.getElementById('overallTier').value;
@@ -250,39 +249,55 @@
         return;
       }
 
-      const updates = {};
-      if (overallTier) updates.tier = overallTier;
+      // Build the player object to send
+      const playerData = { username, region: 'NA' };
+      if (overallTier) playerData.tier = overallTier;
+
+      // If gamemode + tier are set, we need the existing gamemode_tiers to merge.
+      // The edge function can handle this, but to keep it simple we'll let the edge
+      // function fetch the current tiers and merge. We'll send the single tier update.
       if (gamemode && gamemodeTier) {
-        const { data: existing } = await client
-          .from('players')
-          .select('gamemode_tiers')
-          .eq('username', username)
-          .single();
-        const currentTiers = existing?.gamemode_tiers || {};
-        currentTiers[gamemode] = gamemodeTier;
-        updates.gamemode_tiers = currentTiers;
+        // We'll send a special object: the edge function will merge it server‑side.
+        playerData._gamemode_update = { gamemode, tier: gamemodeTier };
       }
 
-      if (!updates.tier && !updates.gamemode_tiers) {
-        msg.textContent = 'Please select at least a tier or gamemode.';
+      const adminUsername = sessionStorage.getItem('adminUsername');
+      const adminPassword = sessionStorage.getItem('adminPassword');
+      if (!adminUsername || !adminPassword) {
+        msg.textContent = 'Session expired. Please log in again.';
         msg.className = 'message error';
+        logout();
         return;
       }
 
-      const { error } = await client
-        .from('players')
-        .upsert({ username, ...updates, region: 'NA' }, { onConflict: 'username' });
+      try {
+        const response = await fetch(EDGE_FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            adminUsername,
+            adminPassword,
+            playerData
+          })
+        });
 
-      if (error) {
-        msg.textContent = 'Error: ' + error.message;
+        const result = await response.json();
+        if (response.ok && result.success) {
+          msg.textContent = `✅ ${username} updated successfully!`;
+          msg.className = 'message success';
+          // Clear form
+          document.getElementById('playerName').value = '';
+          document.getElementById('overallTier').value = '';
+          document.getElementById('gamemodeSelect').value = '';
+          document.getElementById('gamemodeTier').value = '';
+        } else {
+          msg.textContent = 'Error: ' + (result.error || 'Unknown error');
+          msg.className = 'message error';
+        }
+      } catch (err) {
+        msg.textContent = 'Network error. Check console.';
         msg.className = 'message error';
-      } else {
-        msg.textContent = `✅ ${username} updated successfully!`;
-        msg.className = 'message success';
-        document.getElementById('playerName').value = '';
-        document.getElementById('overallTier').value = '';
-        document.getElementById('gamemodeSelect').value = '';
-        document.getElementById('gamemodeTier').value = '';
+        console.error(err);
       }
     }
   </script>
