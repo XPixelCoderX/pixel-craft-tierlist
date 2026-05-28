@@ -1,132 +1,1008 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Pixel Craft Tierlist</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Tiers | Tier Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/skinview3d/bundles/skinview3d.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-dark: #060608;
+            --sidebar-bg: rgba(13, 13, 17, 0.95);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-hover: rgba(255, 255, 255, 0.07);
+            --accent-purple: #8b5cf6;
+            --text-main: #ffffff;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+
+            /* Tier Colors */
+            --c-unranked: #475569;
+            --c-ht1: #ffcf54; --c-lt1: #d4a733; 
+            --c-ht2: #9db2cc; --c-lt2: #8096b3; 
+            --c-ht3: #d98d5b; --c-lt3: #a66337; 
+            --c-ht4: #6b7a8a; --c-lt4: #525f6e; 
+            --c-ht5: #4a4a4a; --c-lt5: #333333;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 40%), radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.12) 0px, transparent 40%);
+            color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+
+        .custom-logo { width: 32px; height: 32px; display: block; object-fit: contain; filter: drop-shadow(0 0 5px rgba(139,92,246,0.3)); border-radius: 6px; }
+        .widget-logo { width: 48px; height: 48px; display: block; object-fit: contain; filter: drop-shadow(0 0 8px rgba(139,92,246,0.5)); border-radius: 8px; }
+
+        /* SIDEBAR */
+        aside { width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(12px); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 16px; flex-shrink: 0; position: relative; z-index: 1000; overflow-y: auto; overflow-x: hidden; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .logo-area { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.2rem; margin-bottom: 24px; color: #fff; flex-shrink: 0; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; color: var(--text-dim); font-weight: 600; cursor: pointer; transition: 0.3s; margin-bottom: 4px; flex-shrink: 0; }
+        .nav-item:hover, .nav-item.active { background: var(--card-hover); color: #fff; }
+        .nav-item.active { background: rgba(139, 92, 246, 0.2); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
+
+        .spacer { flex-grow: 1; min-height: 20px; }
+        .dropup-container { position: relative; margin-top: auto; flex-shrink: 0; }
+        .dropup-menu { position: absolute; bottom: calc(100% + 10px); left: 0; width: 100%; background: rgba(20, 20, 26, 0.95); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: 16px; padding: 8px; box-sizing: border-box; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10; }
+        .dropup-menu.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .dropup-item { padding: 12px; border-radius: 10px; color: var(--text-dim); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; }
+        .dropup-item:hover { background: var(--card-hover); color: #fff; }
+
+        /* MOBILE OVERLAY & BUTTON */
+        .mobile-toggle { display: none; position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--accent-purple); color: #fff; border: none; font-size: 1.5rem; z-index: 1100; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); cursor: pointer; }
+        .mobile-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; opacity: 0; transition: 0.3s; }
+        .mobile-overlay.show { opacity: 1; }
+
+        /* MAIN CONTENT AREA */
+        main { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; z-index: 5; }
+        .top-bar-unified { position: absolute; top: 20px; right: 40px; display: flex; align-items: center; gap: 12px; z-index: 100; }
+        .top-btn { background: rgba(20, 24, 34, 0.7); border: 1px solid var(--border); color: var(--text-main); backdrop-filter: blur(12px); padding: 0 20px; border-radius: 12px; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); height: 38px; box-sizing: border-box; }
+        .top-btn:hover { background: rgba(30, 35, 48, 0.95); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
+        .btn-discord { background: #5865F2 !important; color: #ffffff !important; border: 1px solid #5865F2 !important; }
+        .btn-discord:hover { background: #4752C4 !important; border-color: #4752C4 !important; box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4) !important; }
+
+        .search-container { position: relative; display: flex; align-items: center; }
+        .search-input { background: rgba(20, 24, 34, 0.6); border: 1px solid var(--border); color: #fff; padding: 0 16px 0 36px; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 600; outline: none; transition: 0.3s; width: 180px; height: 38px; box-sizing: border-box; }
+        .search-input:focus { border-color: var(--accent-purple); background: rgba(30, 35, 48, 0.8); width: 240px; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
+        .search-input::placeholder { color: var(--text-dim); font-weight: 500; }
+        .search-icon { position: absolute; left: 12px; color: var(--text-dim); font-size: 0.9rem; pointer-events: none; transition: 0.2s; }
+        .search-input:focus + .search-icon, .search-input:not(:placeholder-shown) + .search-icon { color: var(--accent-purple); }
+        .search-dropdown { position: absolute; top: calc(100% + 8px); right: 0; width: 280px; background: rgba(20, 20, 26, 0.98); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 16px; max-height: 350px; overflow-y: auto; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s; z-index: 50; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .search-dropdown.show { opacity: 1; visibility: visible; transform: translateY(0); }
+        .search-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; }
+        .search-item:hover { background: rgba(139, 92, 246, 0.15); padding-left: 20px; }
+        .search-avatar { width: 28px; height: 28px; border-radius: 6px; }
+        .search-ign { font-weight: 700; color: #fff; font-size: 0.9rem; flex-grow: 1; }
+        .search-score { font-weight: 800; color: var(--accent-purple); font-size: 0.8rem; }
+
+        .content-area { padding: 90px 40px 40px 40px; overflow-y: auto; flex-grow: 1; position: relative;}
+        .last-tested-banner { display: inline-flex; align-items: center; gap: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; color: #10b981; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.15); text-transform: uppercase; letter-spacing: 0.5px; transition: transform 0.2s; }
+        
+        .region-select { background: rgba(20, 24, 34, 0.6); border: 1px solid var(--border); color: var(--text-dim); padding: 8px 16px; border-radius: 12px; font-family: inherit; font-size: 0.9rem; font-weight: 700; outline: none; cursor: pointer; transition: 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 12px top 50%; background-size: 10px auto; padding-right: 32px; }
+        .region-select:hover { border-color: var(--accent-purple); color: #fff; background-color: rgba(30, 35, 48, 0.8); }
+
+        .header-content-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; flex-wrap: wrap; gap: 20px;}
+        .title-group { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+        .title-row-inner { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .server-widget-container { display: flex; align-items: center; gap: 16px; background: rgba(0,0,0,0.4); padding: 12px 18px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.2); backdrop-filter: blur(10px); }
+        .server-logo { display: flex; align-items: center; gap: 12px; border-right: 1px solid var(--border); padding-right: 16px; }
+        .server-ip-widget { display: flex; flex-direction: column; }
+        .ip-label { font-size: 0.65rem; font-weight: 800; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0.5px; }
+        .ip-boxes-row { display: flex; gap: 8px; flex-wrap: wrap;}
+        .ip-box { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #fff; font-size: 0.85rem; font-weight: 700; }
+        .ip-box:hover { background: rgba(139, 92, 246, 0.15); border-color: var(--accent-purple); }
+        .animate-page { animation: pageFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes pageFadeIn { 0% { opacity: 0; transform: translateY(15px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        /* LIST VIEW */
+        .list-header-row { display: flex; padding: 0 0 10px 0; color: var(--text-dim); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        .player-card { display: flex; align-items: center; background: rgba(20, 24, 34, 0.5); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 20px; margin-bottom: 14px; min-height: 80px; height: auto; padding: 8px 0; transition: all 0.3s; cursor: pointer; overflow: hidden; backdrop-filter: blur(10px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .player-card:hover { background: rgba(30, 35, 48, 0.7); border-color: rgba(139, 92, 246, 0.4); transform: translateY(-3px) scale(1.005); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+        .rank-section { display: flex; align-items: center; align-self: stretch; width: 150px; clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%); position: relative; flex-shrink: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; }
+        .rank-1 { background: linear-gradient(135deg, #eab308, #b48c1c); }
+        .rank-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+        .rank-3 { background: linear-gradient(135deg, #b45309, #873e05); }
+        .rank-other { background: linear-gradient(135deg, rgba(51, 65, 85, 0.8), rgba(30, 41, 59, 0.8)); }
+        .rank-num { font-size: 1.6rem; font-weight: 900; font-style: italic; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); margin-left: 20px; width: 55px; }
+        .avatar-bust { position: absolute; bottom: -15px; right: 15px; height: 85px; filter: drop-shadow(-2px 2px 4px rgba(0,0,0,0.5)); }
+        .info-section { display: flex; flex-direction: column; justify-content: center; margin-left: 10px; flex-grow: 1; min-width: 150px; }
+        .player-name { font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .title-row { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+        .title-icon { color: #facc15; } .title-text { color: #94a3b8; } .points-text { color: #64748b; font-weight: 700;}
+        .region-badge { display: inline-block; font-weight: 800; font-size: 0.65rem; padding: 2px 8px; border-radius: 6px; text-align: center; margin-bottom: 4px; width: max-content; text-transform: uppercase;}
+        .region-na { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .region-eu { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .region-sa { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .region-as { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .region-oce { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .region-af { background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.3); }
+        .badges-section { display: flex; gap: 6px; margin-right: 25px; justify-content: flex-start; flex-wrap: nowrap; flex-shrink: 0; overflow: hidden; }
+        .tier-combo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .badge-icon { font-size: 0.85rem; color: #94a3b8; }
+        .icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); }
+        .tier-text { font-size: 0.55rem; font-weight: 900; background: rgba(0,0,0,0.5); padding: 2px 4px; border-radius: 4px; text-transform: uppercase; }
+        .c-unranked { color: var(--c-unranked); } .c-ht1 { color: var(--c-ht1); } .c-lt1 { color: var(--c-lt1); } .c-ht2 { color: var(--c-ht2); } .c-lt2 { color: var(--c-lt2); } .c-ht3 { color: var(--c-ht3); } .c-lt3 { color: var(--c-lt3); } .c-ht4 { color: var(--c-ht4); } .c-lt4 { color: var(--c-lt4); } .c-ht5 { color: var(--c-ht5); } .c-lt5 { color: var(--c-lt5); } .glow-ht1 { text-shadow: 0 0 6px rgba(255, 207, 84, 0.6); }
+
+        /* TOWER VIEW */
+        .tower-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; align-items: flex-start; }
+        .tower-column { background: rgba(255, 255, 255, 0.02); border-radius: 16px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .tower-header { padding: 15px; text-align: center; font-weight: 800; font-size: 1.1rem; border-bottom: 2px solid var(--border); }
+        .tower-list { max-height: 70vh; overflow-y: auto; }
+        .tower-item { display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        .tower-item:hover { background: rgba(255, 255, 255, 0.05); transform: translateX(4px); }
+        .tower-item img { width: 26px; border-radius: 6px; }
+        .tower-item .name { font-size: 0.85rem; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; font-weight: 600;}
+        .tower-chip { padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; background: rgba(0, 0, 0, 0.3); text-align: center; }
+        .header-t1 { background: linear-gradient(135deg, #b48c1c, #785a06); color: #fff; border-top: 2px solid #eab308; }
+        .header-t2 { background: linear-gradient(135deg, #5b697d, #323d4d); color: #fff; border-top: 2px solid #9db2cc; }
+        .header-t3 { background: linear-gradient(135deg, #874f2c, #522c14); color: #fff; border-top: 2px solid #d98d5b; }
+        .header-t4 { background: linear-gradient(135deg, #384657, #1c2530); color: #fff; border-top: 2px solid #6b7a8a; }
+        .header-t5 { background: linear-gradient(135deg, #242424, #121212); color: #fff; border-top: 2px solid #4a4a4a; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding-bottom: 20px; }
+
+        /* MODALS & UI */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-card { background: #0d0d11; border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 450px; max-width: 90%; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transform: translateY(20px) scale(0.95); transition: 0.3s; }
+        .modal-overlay.show .modal-card { transform: translateY(0) scale(1); }
+        .close-btn { position: absolute; top: 16px; right: 20px; background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; transition: 0.2s; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .modal-header { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
+        
+        .profile-card-layout { width: 720px !important; max-width: 95%; display: flex !important; flex-direction: row !important; gap: 24px; align-items: stretch; padding: 30px; }
+        .profile-left { width: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
+        .profile-right { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .m-skin-container { width: 230px; height: 350px; border-radius: 16px; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(139,92,246,0.03)); border: 2px solid var(--border); box-shadow: inset 0 0 20px rgba(0,0,0,0.6), 0 8px 30px rgba(0,0,0,0.5); flex-shrink: 0; overflow: hidden; cursor: grab; display: flex; align-items: center; justify-content: center; position: relative; }
+        .m-skin-container:active { cursor: grabbing; }
+        .m-info h2 { margin: 0 0 4px 0; font-size: 1.7rem; color: #fff; font-weight: 900; letter-spacing: -0.5px; }
+        .m-title-row { font-size: 0.95rem; color: var(--text-dim); display: flex; gap: 8px; align-items: center; font-weight: 600; }
+        .modal-badges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 16px; border: 1px solid var(--border); max-height: 230px; overflow-y: auto; box-sizing: border-box; width: 100%; }
+
+        #admin-dashboard-modal .modal-card, #tester-dashboard-modal .modal-card { width: 650px; }
+        .admin-player-list { max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border); margin-top: 15px; }
+        .admin-player-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; gap: 10px; }
+        .admin-player-row:hover { background: rgba(255,255,255,0.05); }
+        .admin-player-info { display: flex; align-items: center; gap: 12px; flex-grow: 1; min-width: 0; }
+        .admin-player-info img { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
+        .admin-player-info div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-player-info strong { color: #fff; font-size: 0.95rem; }
+        .admin-player-info span { color: var(--text-dim); font-size: 0.8rem; }
+        .admin-action-btn { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); padding: 6px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: inherit; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;}
+        .admin-action-btn:hover { background: rgba(59, 130, 246, 0.3); color: #93c5fd; transform: scale(1.05); }
+        .btn-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .btn-green:hover { background: rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+        .btn-red { background: rgba(239, 68, 68, 0.15); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .btn-red:hover { background: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+
+        .ui-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+        .ui-tab { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-dim); font-weight: 700; border-radius: 10px; cursor: pointer; transition: 0.2s; font-family: inherit; text-align: center; white-space: nowrap; }
+        .ui-tab:hover { background: rgba(255,255,255,0.08); }
+        .ui-tab.active { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); border-color: rgba(139, 92, 246, 0.3); }
+        .ui-input { width: 100%; background: rgba(0,0,0,0.4); border: 1px solid var(--border); color: #fff; padding: 14px; border-radius: 10px; font-family: inherit; font-size: 0.95rem; margin-bottom: 15px; box-sizing: border-box; outline: none; transition: 0.2s; font-weight: 600;}
+        .ui-input:focus { border-color: var(--accent-purple); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15); }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .edit-group { display: flex; flex-direction: column; gap: 4px; }
+        .edit-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; }
+        .edit-select { background: rgba(0,0,0,0.4); border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 8px; font-family: inherit; font-size: 0.85rem; font-weight: 600; outline: none; }
+        .edit-select:focus { border-color: var(--accent-purple); }
+        .edit-select option { background: #0d1017; }
+        .save-btn { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent-purple); color: #fff; border: none; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        .save-btn:hover { background: #7c3aed; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); }
+
+        ::-webkit-scrollbar { width: 8px; height: 6px; } 
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; border: 2px solid var(--bg-dark); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+        @media (max-width: 950px) {
+            .mobile-toggle { display: block; } .mobile-overlay { display: block; }
+            aside { position: fixed; left: -260px; height: 100%; z-index: 1200; box-shadow: 5px 0 25px rgba(0,0,0,0.5); }
+            aside.show { transform: translateX(260px); }
+            .top-bar-unified { top: 15px; left: 15px; right: 15px; width: calc(100% - 30px); justify-content: center; gap: 8px; flex-wrap: wrap; }
+            .search-input { width: 130px; } .search-input:focus { width: 160px; }
+            .content-area { padding: 140px 15px 20px 15px; }
+            .header-content-wrapper { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .server-widget-container { width: 100%; box-sizing: border-box; justify-content: center; }
+            .list-header-row { display: none; } 
+            .player-card { flex-direction: column; height: auto; align-items: flex-start; padding-bottom: 15px; position: relative; }
+            .rank-section { width: 100%; height: 50px; border-radius: 20px 20px 0 0; clip-path: none; justify-content: flex-start; }
+            .rank-num { margin-left: 15px; } .avatar-bust { height: 70px; bottom: 0; right: 15px; }
+            .info-section { margin-left: 15px; margin-top: 10px; width: calc(100% - 30px); }
+            .badges-section { margin-left: 15px; margin-top: 10px; flex-wrap: wrap; width: calc(100% - 30px); gap: 8px; justify-content: flex-start; }
+            .tower-grid { grid-template-columns: 1fr; gap: 20px; }
+            .profile-card-layout { flex-direction: column !important; align-items: center; width: 100% !important; }
+            .profile-left { width: 100%; } .profile-right { width: 100%; }
+        }
+    </style>
 </head>
 <body>
-  <!-- Animated Background Layers -->
-  <div class="animated-bg">
-    <div class="gradient-orb orb-1"></div>
-    <div class="gradient-orb orb-2"></div>
-    <div class="gradient-orb orb-3"></div>
-    <div class="pixel-overlay"></div>
-    <canvas id="particleCanvas"></canvas>
-  </div>
-  <div class="bg-noise"></div>
 
-  <!-- IP Corner -->
-  <div class="ip-corner">
-    <div class="ip-box">
-      <i class="fab fa-java"></i>
-      <span class="ip-text">play.pcsmp.net</span>
-      <button class="copy-ip" data-ip="play.pcsmp.net" title="Copy Java IP"><i class="far fa-copy"></i></button>
-    </div>
-    <div class="ip-box eagler">
-      <i class="fas fa-globe"></i>
-      <span class="ip-text">wss://pcsmp.net</span>
-      <button class="copy-ip" data-ip="wss://pcsmp.net" title="Copy Eagler WebSocket"><i class="far fa-copy"></i></button>
-    </div>
-    <a href="https://discord.gg/pixelcraft" target="_blank" class="discord-btn"><i class="fab fa-discord"></i> Join Discord</a>
-  </div>
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
 
-  <div class="app-container">
-    <header class="main-header">
-      <div class="logo-area">
-        <div class="logo-icon"><i class="fas fa-cube"></i></div>
-        <div class="logo-text">
-          <span class="logo-word">PIXEL</span><span class="logo-word accent">CRAFT</span>
-          <span class="logo-sub">Tierlist</span>
+    <aside id="sidebar">
+        <div class="logo-area">
+            <img src="pc-logo.png" alt="PT" class="custom-logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=PT&background=8b5cf6&color=fff&rounded=true';"> 
+            Pixel Tiers
         </div>
-      </div>
-      <div class="header-actions">
-        <div class="live-badge"><span class="pulse"></span>LIVE</div>
-        <div class="region-filter">
-          <i class="fas fa-globe"></i>
-          <select id="regionFilterSelect">
-            <option value="ALL">All Regions</option>
-            <option value="NA">NA</option>
-            <option value="EU">EU</option>
-            <option value="AS">AS</option>
-            <option value="OCE">OCE</option>
-          </select>
+
+        <div class="nav-item active" onclick="switchPage('Overall', this)"><i class="fa-solid fa-trophy"></i> Overall</div>
+        <div class="nav-item" onclick="switchPage('Sword', this)"><i class="fa-solid fa-khanda"></i> Sword</div>
+        <div class="nav-item" onclick="switchPage('FireballFight', this)"><i class="fa-solid fa-fire"></i> Fireball</div>
+        <div class="nav-item" onclick="switchPage('Axe', this)"><i class="fa-solid fa-gavel"></i> Axe</div>
+        <div class="nav-item" onclick="switchPage('Bedfight', this)"><i class="fa-solid fa-bed"></i> Bedfight</div>
+        <div class="nav-item" onclick="switchPage('Crystal', this)"><i class="fa-solid fa-gem"></i> Crystal</div>
+        <div class="nav-item" onclick="switchPage('UHC', this)"><i class="fa-solid fa-heart"></i> UHC</div>
+        <div class="nav-item" onclick="switchPage('DiamondSMP', this)"><i class="fa-solid fa-diamond"></i> DiaSMP</div>
+        <div class="nav-item" onclick="switchPage('SMP', this)"><i class="fa-solid fa-users"></i> SMP</div>
+        <div class="nav-item" onclick="switchPage('Mace', this)"><i class="fa-solid fa-hammer"></i> Mace</div>
+        <div class="nav-item" onclick="switchPage('Spear', this)"><i class="fa-solid fa-bolt"></i> Spear</div>
+        <div class="nav-item" onclick="switchPage('DiamondPot', this)"><i class="fa-solid fa-flask"></i> Dia Pot</div>
+        <div class="nav-item" onclick="switchPage('NethPot', this)"><i class="fa-solid fa-vial"></i> Neth Pot</div>
+        <div class="nav-item" onclick="switchPage('Vanilla', this)"><i class="fa-solid fa-leaf"></i> Vanilla</div>
+        <div class="nav-item" onclick="switchPage('Quake', this)"><i class="fa-solid fa-gun"></i> Quake</div>
+        <div class="nav-item" onclick="switchPage('PotPvP', this)"><i class="fa-solid fa-flask"></i> Pot PvP</div>
+
+        <div class="spacer"></div>
+        
+        <div class="dropup-container" id="help-container" style="margin-top: 10px;">
+            <div class="dropup-menu" id="help-menu">
+                <div class="dropup-item" onclick="promptAdmin()"><i class="fa-solid fa-shield-halved" style="color:#ef4444"></i> Admin Panel</div>
+                <div class="dropup-item" onclick="openTesterPortal()"><i class="fa-solid fa-clipboard-check" style="color:#10b981"></i> Tester Portal</div>
+                <div class="dropup-item" onclick="window.open('https://discord.gg/jqPt6a563h', '_blank')"><i class="fa-brands fa-discord" style="color:#5865F2"></i> Help & Support</div>
+            </div>
+            <div class="nav-item" onclick="toggleHelp(event)"><i class="fa-solid fa-circle-question"></i> Help</div>
         </div>
-      </div>
-    </header>
-
-    <!-- Gamemode Chips -->
-    <div class="gamemode-strip" id="gamemodeStrip"></div>
-
-    <!-- Search Bar -->
-    <div class="search-container">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" placeholder="Search by username or nickname..." class="search-input">
-      <button id="clearSearchBtn" class="clear-search-btn" style="display: none;"><i class="fas fa-times"></i></button>
-    </div>
+    </aside>
 
     <main>
-      <div class="leaderboard-wrapper">
-        <div class="table-header">
-          <div class="rank-col">#</div>
-          <div class="player-col">Player</div>
-          <div class="tier-col">Tier</div>
-          <div class="region-col">Region</div>
-          <div class="points-col">Pts</div>
+        <div class="top-bar-unified">
+            <button class="top-btn" onclick="document.getElementById('announcements-modal').classList.add('show')"><i class="fa-solid fa-bullhorn" style="color: #facc15;"></i> Announcements</button>
+            <button class="top-btn" onclick="document.getElementById('info-modal').classList.add('show')"><i class="fa-solid fa-circle-info" style="color: #3b82f6;"></i> Info</button>
+            <div class="search-container">
+                <input type="text" id="player-search" class="search-input" placeholder="Search player..." oninput="handleSearch(this.value)" autocomplete="off">
+                <i class="fa-solid fa-search search-icon"></i>
+                <div id="search-dropdown" class="search-dropdown"></div>
+            </div>
+            <button class="top-btn btn-discord" onclick="window.open('https://discord.gg/jqPt6a563h', '_blank')"><i class="fa-brands fa-discord"></i> Discord</button>
         </div>
 
-        <div id="skeletonContainer" class="skeleton-container"></div>
-        <div id="leaderboardRows" class="leaderboard-rows" style="display: none;"></div>
-        <div id="emptyState" class="empty-state" style="display: none;">
-          <div class="empty-state-content">
-            <i class="fas fa-users-slash"></i>
-            <h3>No players found</h3>
-            <p>Try adjusting your search or filters.</p>
-          </div>
-        </div>
+        <div class="content-area">
+            <div class="last-tested-banner" id="last-tested" style="display: none;">
+                <i class="fa-solid fa-clock"></i> Last Test: None
+            </div>
 
-        <!-- Pagination Controls -->
-        <div class="pagination-container" id="paginationContainer" style="display: none;">
-          <button id="prevPageBtn" class="pagination-btn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-          <span id="pageInfo" class="page-info">Page 1 of 1</span>
-          <button id="nextPageBtn" class="pagination-btn" disabled>Next <i class="fas fa-chevron-right"></i></button>
+            <div class="header-content-wrapper">
+                <div class="title-group">
+                    <div class="title-row-inner">
+                        <h1 style="margin:0; font-size:2.2rem; font-weight:900; letter-spacing:-0.5px;" id="page-title">Overall Rankings</h1>
+                        <select class="region-select" id="region-filter" onchange="filterRegion(this.value)">
+                            <option value="ALL">All Regions</option>
+                            <option value="NA">North America (NA)</option>
+                            <option value="EU">Europe (EU)</option>
+                            <option value="SA">South America (SA)</option>
+                            <option value="AS">Asia (AS)</option>
+                            <option value="OCE">Oceania (OCE)</option>
+                            <option value="AF">Africa (AF)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="server-widget-container">
+                    <div class="server-logo">
+                        <img src="pc-logo.png" alt="Pixel Tiers Logo" class="widget-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i class="fa-solid fa-globe fa-2x" style="color: var(--accent-purple); display: none;"></i>
+                    </div>
+                    <div class="server-ip-widget">
+                        <span class="ip-label">CONNECT ADDRESS</span>
+                        <div class="ip-boxes-row">
+                            <div class="ip-box" onclick="copyIp('pcsmp.net')">
+                                <span style="color: var(--text-dim);">Server:</span> pcsmp.net
+                            </div>
+                            <div class="ip-box" onclick="copyIp('wss://pcsmp.net')">
+                                <span style="color: var(--text-dim);">Web URL:</span> wss://pcsmp.net
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="list-header" class="list-header-row">
+                <div style="width: 150px; padding-left: 20px;">Rank</div>
+                <div style="flex-grow: 1; padding-left: 10px;">Player Details</div>
+                <div style="width: 250px; text-align: left;">Tier Breakdown</div>
+            </div>
+
+            <div id="leaderboard-container" class="animate-page"></div>
         </div>
-      </div>
     </main>
 
-    <footer class="main-footer">
-      <p>⚡ HT1 (60) • LT1 (50) • HT2 (40) • LT2 (30) • HT3 (20) • LT3 (15) • HT4 (10) • LT4 (5) • HT5 (2) • LT5 (1)</p>
-    </footer>
-  </div>
-
-  <!-- Player Quick‑View Modal -->
-  <div id="playerModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      <div id="modalContent" class="modal-content"></div>
-      <div class="modal-actions">
-        <a href="#" id="viewFullProfileBtn" class="btn-primary">View Full Profile <i class="fas fa-arrow-right"></i></a>
-      </div>
+    <div id="info-modal" class="modal-overlay" onclick="closeModals()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModals()">&times;</button>
+            <h2 style="margin-top:0; margin-bottom:12px; font-weight:800; color:#fff;"><i class="fa-solid fa-circle-info" style="color:var(--accent-purple)"></i> Information Desk</h2>
+            <p id="info-main-text" style="color:var(--text-dim); font-size:0.95rem; line-height:1.6; margin-bottom:15px;">
+                Welcome to the global dashboard. Use the filter controls to view custom rankings by game modes and regions worldwide.
+            </p>
+        </div>
     </div>
-  </div>
 
-  <script src="supabase.js"></script>
-  <script src="gamemodes.js"></script>
-  <script src="app.js"></script>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      renderSkeletons(10);
-      renderGamemodeStrip();
-      initCopyButtons();
-      initParticles();
-      initSearchAndPagination();
-    });
-  </script>
+    <div id="announcements-modal" class="modal-overlay" onclick="closeModals()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModals()">&times;</button>
+            <h2 style="margin-top:0; margin-bottom:15px; font-weight:800; color:#fff;"><i class="fa-solid fa-bullhorn" style="color:#facc15"></i> Announcements</h2>
+            <div id="public-announcements-list" style="display:flex; flex-direction:column; gap:12px;"></div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal-overlay" onclick="closeModals()">
+        <div class="modal-card profile-card-layout" onclick="event.stopPropagation()">
+            <button class="close-btn" onclick="closeModals()">&times;</button>
+            <div class="profile-left">
+                <div id="m-skin-container" class="m-skin-container"><canvas id="skin-canvas"></canvas></div>
+            </div>
+            <div class="profile-right">
+                <div class="m-info" style="margin-bottom: 18px;">
+                    <h2 id="m-ign">Player Name</h2>
+                    <div class="m-title-row">
+                        <i class="fa-solid fa-layer-group" style="color: var(--accent-purple);"></i>
+                        <span id="m-title">Title</span>
+                        <span id="m-score" style="color:var(--accent-purple); font-weight:800;">(0 pts)</span>
+                    </div>
+                    <div id="m-region-badge-container" style="margin-top:8px;"></div>
+                </div>
+                <div id="modal-badges" class="modal-badges"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tester-modal" class="modal-overlay" onclick="if(event.target===this) closeModals()">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header" style="justify-content: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #10b981;"><i class="fa-solid fa-clipboard-check"></i> Tester Portal</h2>
+            </div>
+            <div class="ui-tabs">
+                <button class="ui-tab active" id="pt-tab-login" onclick="switchPortalTab('login')">Login</button>
+            </div>
+            <div id="tester-login-section" class="tester-section">
+                <input type="text" id="t-login-ign" class="ui-input" placeholder="Tester Username">
+                <input type="password" id="t-login-pass" class="ui-input" placeholder="Password">
+                <button class="save-btn" style="background:#10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);" onclick="testerLogin()">Login to Portal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tester-dashboard-modal" class="modal-overlay" onclick="if(event.target===this) closeModals()">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #10b981;"><i class="fa-solid fa-vial"></i> Tester Management Panel</h2>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 0;">
+                <input type="text" id="tester-panel-search" class="ui-input" placeholder="Search player to test..." oninput="renderTesterPanelList(this.value)" style="margin-bottom: 0;">
+                <button class="admin-action-btn btn-green" onclick="openAddPlayerModal('tester')" style="height: 48px; border-radius: 10px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Add Player</button>
+            </div>
+            <div class="admin-player-list" id="tester-panel-player-list"></div>
+        </div>
+    </div>
+
+    <div id="admin-dashboard-modal" class="modal-overlay" onclick="if(event.target===this) closeModals()">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #ef4444;"><i class="fa-solid fa-shield-halved"></i> Admin Control Panel</h2>
+            </div>
+            <div class="ui-tabs">
+                <button class="ui-tab active" id="tab-btn-players" onclick="switchAdminTab('players')">Players</button>
+                <button class="ui-tab" id="tab-btn-announcements" onclick="switchAdminTab('announcements')">Broadcasts</button>
+                <button class="ui-tab" id="tab-btn-logs" onclick="switchAdminTab('logs')">Audit Logs</button>
+            </div>
+
+            <div id="admin-tab-players" class="admin-section">
+                <div style="display: flex; gap: 10px; margin-bottom: 0;">
+                    <input type="text" id="admin-search" class="ui-input" placeholder="Search player..." oninput="renderAdminList(this.value)" style="margin-bottom: 0;">
+                    <button class="admin-action-btn btn-green" onclick="openAddPlayerModal('admin')" style="height: 48px; border-radius: 10px; padding: 0 20px;"><i class="fa-solid fa-plus"></i> Add Player</button>
+                </div>
+                <div class="admin-player-list" id="admin-player-list"></div>
+            </div>
+
+            <div id="admin-tab-announcements" class="admin-section" style="display: none;">
+                <div class="admin-grid" style="margin-bottom:10px;">
+                    <div class="edit-group">
+                        <label>Header Tag</label>
+                        <input type="text" id="announcement-tag" class="ui-input" placeholder="e.g. SYSTEM UPDATE" style="padding: 8px 12px; font-size:0.85rem; margin:0;">
+                    </div>
+                    <div class="edit-group">
+                        <label>Announcement Title</label>
+                        <input type="text" id="announcement-title" class="ui-input" placeholder="Headline Summary" style="padding: 8px 12px; font-size:0.85rem; margin:0;">
+                    </div>
+                </div>
+                <div class="edit-group" style="margin-bottom: 15px;">
+                    <label>Content Description</label>
+                    <textarea id="announcement-content" class="ui-input" placeholder="Message details..." style="min-height:70px; max-height:120px; padding: 10px; font-size:0.85rem; margin:0; resize: vertical; font-family:inherit;"></textarea>
+                </div>
+                <button class="save-btn btn-green" onclick="addAnnouncement()" style="margin-bottom:20px; padding:10px;">Publish Broadcast</button>
+                <div id="admin-announcements-list" style="max-height:160px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+            
+            <div id="admin-tab-logs" class="admin-section" style="display: none; max-height:300px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this) returnToDashboard()">
+        <div class="modal-card">
+            <button class="close-btn" onclick="returnToDashboard()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #ef4444;"><i class="fa-solid fa-pen-to-square"></i> Edit Player</h2>
+            </div>
+            
+            <div style="display:flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <img id="edit-avatar" src="" style="width: 48px; border-radius: 10px;">
+                <div>
+                    <h3 id="edit-player-name" style="margin: 0; color: #fff;">Player</h3>
+                    <div style="color: var(--text-dim); font-size: 0.8rem;">Adjust tiers or overrides below</div>
+                </div>
+            </div>
+
+            <div class="admin-grid">
+                <div class="edit-group" id="custom-title-wrapper" style="margin-bottom: 15px;">
+                    <label>Custom Rank / Title</label>
+                    <input type="text" id="edit-custom-title" class="ui-input" placeholder="e.g. Admin" style="margin-bottom: 0;">
+                </div>
+                <div class="edit-group" id="region-edit-wrapper" style="margin-bottom: 15px;">
+                    <label>Region</label>
+                    <select id="edit-region" class="edit-select" style="padding: 14px; border-radius: 10px;">
+                        <option value="NA">North America (NA)</option><option value="EU">Europe (EU)</option>
+                        <option value="SA">South America (SA)</option><option value="AS">Asia (AS)</option>
+                        <option value="OCE">Oceania (OCE)</option><option value="AF">Africa (AF)</option>
+                    </select>
+                </div>
+             </div>
+            <div class="admin-grid" id="edit-form-grid"></div>
+            <button class="save-btn" onclick="savePlayerEdit()">Save Changes</button>
+        </div>
+    </div>
+
+    <div id="add-player-modal" class="modal-overlay" onclick="if(event.target===this) returnToDashboard()">
+        <div class="modal-card">
+            <button class="close-btn" onclick="returnToDashboard()"><i class="fa-solid fa-arrow-left"></i></button>
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #10b981;"><i class="fa-solid fa-user-plus"></i> Add New Player</h2>
+            </div>
+            <div class="edit-group" style="margin-bottom: 15px;">
+                <label>In-Game Name (Exact)</label>
+                <input type="text" id="add-ign" class="ui-input" placeholder="Player IGN" style="margin-bottom: 0;">
+            </div>
+             <div class="edit-group" style="margin-bottom: 20px;">
+                <label>Region</label>
+                <select id="add-region" class="edit-select" style="width: 100%; padding: 14px; border-radius: 10px;">
+                    <option value="NA">North America (NA)</option><option value="EU">Europe (EU)</option>
+                    <option value="SA">South America (SA)</option><option value="AS">Asia (AS)</option>
+                    <option value="OCE">Oceania (OCE)</option><option value="AF">Africa (AF)</option>
+                </select>
+            </div>
+            <button class="save-btn" style="background:#10b981; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);" onclick="saveNewPlayer()">Create Player</button>
+        </div>
+    </div>
+
+    <script>
+        // THIS IS THE FIX: Changed 'supabase' to 'supabaseClient'
+        const SUPABASE_URL = 'https://iphmjgrhkrhubgqqpgac.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwaG1qZ3Joa3JodWJncXFwZ2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTkyOTEsImV4cCI6MjA5MTY3NTI5MX0.iQ4kpMqVEcPxZdkTYXlmP6f8r6M8GkkJtSzXB28c0oY';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Core App State
+        let players = [];
+        let systemLogs = []; 
+        let announcements = [];
+        let currentMode = "Overall";
+        let currentRegionFilter = "ALL";
+        let currentPage = 1;
+        const playersPerPage = 20;
+
+        // Expanded Game Keys
+        const gameKeys = ["Sword", "FireballFight", "Axe", "Bedfight", "Crystal", "UHC", "DiamondSMP", "SMP", "Mace", "Spear", "DiamondPot", "NethPot", "Vanilla", "Quake", "PotPvP"];
+        const gameDisplayNames = { Overall: "Overall Rankings", Sword: "Sword Towers", FireballFight: "Fireball Fight Towers", Axe: "Axe Towers", Bedfight: "Bedfight Towers", Crystal: "Crystal Towers", UHC: "UHC Towers", DiamondSMP: "DiamondSMP Towers", SMP: "SMP Towers", Mace: "Mace Towers", Spear: "Spear Towers", DiamondPot: "Diamond Pot Towers", NethPot: "Neth Pot Towers", Vanilla: "Vanilla Towers", Quake: "Quake Towers", PotPvP: "Pot PvP Towers" };
+        const gameIcons = { Sword: "fa-khanda", FireballFight: "fa-fire", Axe: "fa-gavel", Bedfight: "fa-bed", Crystal: "fa-gem", UHC: "fa-heart", DiamondSMP: "fa-diamond", SMP: "fa-users", Mace: "fa-hammer", Spear: "fa-bolt", DiamondPot: "fa-flask", NethPot: "fa-vial", Vanilla: "fa-leaf", Quake: "fa-gun", PotPvP: "fa-flask" };
+        const scoreMap = { "unranked": 0, "lt5": 5, "ht5": 10, "lt4": 20, "ht4": 30, "lt3": 45, "ht3": 60, "lt2": 80, "ht2": 100, "lt1": 130, "ht1": 175 };
+
+        // Auth State
+        let managementContext = 'admin'; 
+        let isAdminLoggedIn = false;
+        let isTesterLoggedIn = false;
+        let loggedTesterIGN = null; 
+        let currentlyEditingIGN = '';
+
+        // 3D Variables
+        let playerSkinViewer = null;
+        let isDragging3D = false;
+        let isHovering3D = false;
+        let lastTestedRecord = { mode: "Sword", time: Date.now() };
+
+        // Database Fetching Functions
+        async function fetchInitialData() {
+            try {
+                // Fetch Players
+                const { data: pData } = await supabaseClient.from('players').select('*');
+                if (pData) players = pData;
+
+                // Fetch Announcements
+                const { data: aData } = await supabaseClient.from('announcements').select('*').order('created_at', { ascending: false });
+                if (aData) announcements = aData;
+
+                // Fetch Logs
+                const { data: lData } = await supabaseClient.from('audit_logs').select('*').order('created_at', { ascending: false });
+                if (lData) systemLogs = lData;
+
+                calculateScoresAndSort();
+                renderLeaderboard();
+                renderAnnouncementsPublic();
+            } catch (err) {
+                console.error("Database connection missing or blocked by adblocker.", err);
+            }
+        }
+
+        async function logSystemEvent(type, details) {
+            const time = new Date().toLocaleTimeString();
+            let loc = "Unknown Gateway";
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                if (!data.error) loc = `${data.city}, ${data.region}, ${data.country_name}`;
+            } catch (e) {}
+
+            await supabaseClient.from('audit_logs').insert([{ type, location: loc, details }]);
+            // Refresh logs
+            const { data: lData } = await supabaseClient.from('audit_logs').select('*').order('created_at', { ascending: false });
+            if (lData) systemLogs = lData;
+        }
+
+        function calculateScoresAndSort() {
+            players.forEach((p, i) => { 
+                p.score = gameKeys.reduce((sum, k) => sum + (scoreMap[p.tiers[k]] || 0), 0); 
+            });
+            players.sort((a, b) => b.score - a.score);
+            players.forEach((p, i) => {
+                if (!p.custom_title) {
+                    if (p.score === 0) p.title = "Unranked Slate";
+                    else if (i < 5) p.title = "Combat Master"; 
+                    else if (i < 20) p.title = "Combat Ace";
+                    else if (i < 50) p.title = "Veteran"; 
+                    else p.title = "Competitor";
+                } else { p.title = p.custom_title; }
+            });
+        }
+
+        function closeModals() { 
+            let wasAdmin = document.getElementById('admin-dashboard-modal').classList.contains('show');
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+            if (wasAdmin && isAdminLoggedIn) {
+                alert(`⚠️ SECURITY ALERT: Admin session ended.`);
+            }
+            isAdminLoggedIn = false;
+            isTesterLoggedIn = false;
+            loggedTesterIGN = null;
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); document.getElementById('mobile-overlay').classList.toggle('show'); }
+        function toggleHelp(e) { e.stopPropagation(); document.getElementById('help-menu').classList.toggle('show'); }
+        document.addEventListener('click', () => { document.getElementById('help-menu').classList.remove('show'); document.getElementById('search-dropdown').classList.remove('show'); });
+        
+        function switchPage(mode, element) {
+            currentPage = 1; currentMode = mode;
+            if(element) { document.querySelectorAll('aside .nav-item').forEach(i => i.classList.remove('active')); element.classList.add('active'); }
+            document.getElementById('page-title').innerText = gameDisplayNames[mode];
+            document.getElementById('list-header').style.display = mode === "Overall" ? "flex" : "none";
+            if(window.innerWidth <= 950) { document.getElementById('sidebar').classList.remove('show'); document.getElementById('mobile-overlay').classList.remove('show'); }
+            renderLeaderboard();
+        }
+        function filterRegion(region) { currentPage = 1; currentRegionFilter = region; renderLeaderboard(); }
+        function changePage(direction) { currentPage += direction; renderLeaderboard(); window.scrollTo(0,0); }
+
+        // Tester Portal
+        function openTesterPortal() {
+            document.getElementById('help-menu').classList.remove('show');
+            if (isTesterLoggedIn) { openTesterDashboard(); return; }
+            document.getElementById('tester-modal').classList.add('show');
+        }
+
+        async function testerLogin() {
+            const ign = document.getElementById('t-login-ign').value.trim();
+            const pass = document.getElementById('t-login-pass').value;
+            if (!ign || !pass) { alert("Please fill out all fields."); return; }
+            
+            // Call Postgres RPC secure login
+            const { data: role, error } = await supabaseClient.rpc('verify_login', { p_user: ign, p_pass: pass });
+            
+            if (role === 'tester' || role === 'admin') { 
+                isTesterLoggedIn = true; loggedTesterIGN = ign; 
+                logSystemEvent('Tester Login', `Tester Account: ${ign}`);
+                openTesterDashboard(); 
+            } else { 
+                alert("Invalid credentials.");
+            }
+        }
+
+        function openTesterDashboard() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+            managementContext = 'tester'; document.getElementById('tester-panel-search').value = '';
+            renderTesterPanelList(''); document.getElementById('tester-dashboard-modal').classList.add('show');
+        }
+
+        function renderTesterPanelList(query) {
+            const listDiv = document.getElementById('tester-panel-player-list');
+            let q = query.toLowerCase().trim(); let pList = q ? players.filter(p => p.ign.toLowerCase().includes(q)) : players;
+            if (pList.length === 0) { listDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #94a3b8;">No players found.</div>'; return; }
+            listDiv.innerHTML = pList.slice(0, 40).map(p => `
+                <div class="admin-player-row">
+                    <div class="admin-player-info"><img src="https://mc-heads.net/avatar/${p.ign}/32"><div><strong>${p.ign}</strong><br><span>Score: ${p.score} | Reg: ${p.region}</span></div></div>
+                    <button class="admin-action-btn" onclick="openPlayerEdit('${p.ign}')"><i class="fa-solid fa-vial"></i> Test</button>
+                </div>`).join('');
+        }
+
+        // Admin Portal Functions
+        async function promptAdmin() {
+            document.getElementById('help-menu').classList.remove('show');
+            if (isAdminLoggedIn) { openAdminDashboard(); return; }
+            
+            let user = prompt("Enter Admin Username (Default: admin):");
+            if (!user) return;
+            let pass = prompt("Enter Admin Password:");
+            
+            const { data: role, error } = await supabaseClient.rpc('verify_login', { p_user: user, p_pass: pass });
+
+            if (role === 'admin') { 
+                isAdminLoggedIn = true;
+                logSystemEvent('Admin Login', "Master Access Granted");
+                openAdminDashboard(); 
+            } else { alert("Incorrect Credentials or insufficient permissions."); }
+        }
+
+        function openAdminDashboard() {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('show'));
+            managementContext = 'admin'; document.getElementById('admin-search').value = '';
+            switchAdminTab('players'); document.getElementById('admin-dashboard-modal').classList.add('show');
+        }
+
+        function switchAdminTab(tab) {
+            ['players', 'announcements', 'logs'].forEach(t => { 
+                document.getElementById(`tab-btn-${t}`).classList.remove('active'); 
+                document.getElementById(`admin-tab-${t}`).style.display = 'none'; 
+            });
+            document.getElementById(`tab-btn-${tab}`).classList.add('active'); 
+            document.getElementById(`admin-tab-${tab}`).style.display = 'block';
+            
+            if (tab === 'players') renderAdminList(document.getElementById('admin-search').value);
+            if (tab === 'announcements') renderAnnouncementsAdmin();
+            if (tab === 'logs') renderAuditLogs();
+        }
+
+        function renderAdminList(query) {
+            const listDiv = document.getElementById('admin-player-list');
+            let q = query.toLowerCase().trim(); let pList = q ? players.filter(p => p.ign.toLowerCase().includes(q)) : players;
+            if (pList.length === 0) { listDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #94a3b8;">No players found.</div>'; return; }
+            listDiv.innerHTML = pList.slice(0, 50).map(p => `
+                <div class="admin-player-row">
+                    <div class="admin-player-info"><img src="https://mc-heads.net/avatar/${p.ign}/32"><div><strong>${p.ign}</strong> ${p.custom_title ? `<span style="background:rgba(250, 204, 21, 0.2); color:#facc15; padding:2px 6px; border-radius:4px; font-size:0.6rem; margin-left:6px;">${p.custom_title}</span>` : ''}<br><span>Score: ${p.score} | Reg: ${p.region}</span></div></div>
+                    <div style="display: flex; gap: 6px;"><button class="admin-action-btn" onclick="openPlayerEdit('${p.ign}')"><i class="fa-solid fa-pen"></i> Edit</button><button class="admin-action-btn btn-red" onclick="deletePlayer('${p.ign}')"><i class="fa-solid fa-trash"></i></button></div>
+                </div>`).join('');
+        }
+
+        async function deletePlayer(ign) {
+            if (!confirm(`Are you absolutely sure you want to delete profile: ${ign}?`)) return;
+            const { error } = await supabaseClient.from('players').delete().eq('ign', ign);
+            if(error) { alert("Error deleting player."); return; }
+            players = players.filter(p => p.ign !== ign);
+            calculateScoresAndSort(); renderAdminList(document.getElementById('admin-search').value); renderLeaderboard();
+        }
+
+        function renderAuditLogs() {
+            const logsPanel = document.getElementById('admin-tab-logs');
+            if (systemLogs.length === 0) { logsPanel.innerHTML = `<div>[SYSTEM] Audit database system logs fully operational. No recent sessions.</div>`; return; }
+            
+            let html = `<div style="margin-bottom:15px; color:#10b981; font-weight:700;">[SYSTEM] Active Security Audit Logs:</div>`;
+            html += systemLogs.map(log => {
+                let icon = 'fa-shield-halved'; let iconColor = '#3b82f6'; 
+                if(log.type === 'Tester Login') { icon = 'fa-clipboard-check'; iconColor = '#10b981'; }
+                if(log.type === 'Tier Update') { icon = 'fa-pen'; iconColor = '#8b5cf6'; }
+                return `
+                <div style="margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                    <div style="color:#fff; font-size:0.85rem;"><i class="fa-solid ${icon}" style="color:${iconColor}"></i> ${log.type}</div>
+                    <div style="color:var(--text-dim); font-size:0.75rem; margin-top:6px; display: flex; flex-direction: column; gap: 4px;">
+                        <div><i class="fa-solid fa-clock"></i> ${new Date(log.created_at).toLocaleString()}</div>
+                        ${log.location ? `<div style="color:#facc15;"><i class="fa-solid fa-earth-americas"></i> Accessed from: <strong>${log.location}</strong></div>` : ''}
+                        <div style="color:#94a3b8;"><i class="fa-solid fa-circle-info"></i> ${log.details}</div>
+                    </div>
+                </div>`;
+            }).join('');
+            logsPanel.innerHTML = html;
+        }
+
+        // Shared Edit / Add Portal Logic
+        function openAddPlayerModal(ctx) {
+            managementContext = ctx;
+            document.getElementById('admin-dashboard-modal').classList.remove('show'); document.getElementById('tester-dashboard-modal').classList.remove('show');
+            document.getElementById('add-ign').value = ''; document.getElementById('add-region').value = 'NA'; document.getElementById('add-player-modal').classList.add('show');
+        }
+
+        async function saveNewPlayer() {
+            const ign = document.getElementById('add-ign').value.trim();
+            const region = document.getElementById('add-region').value;
+            if(!ign) { alert("Please enter an IGN."); return; }
+            if(players.find(p => p.ign.toLowerCase() === ign.toLowerCase())) { alert("Player profile already exists!"); return; }
+
+            const blankSlateTiers = {};
+            gameKeys.forEach(k => blankSlateTiers[k] = 'unranked');
+            
+            const newPlayer = { ign: ign, region: region, custom_title: null, tiers: blankSlateTiers };
+            const { error } = await supabaseClient.from('players').insert([newPlayer]);
+            if(error) { alert("Database error."); return; }
+            
+            players.push(newPlayer);
+            calculateScoresAndSort(); renderLeaderboard();
+            document.getElementById('add-player-modal').classList.remove('show'); returnToDashboard();
+        }
+
+        function openPlayerEdit(ign) {
+            if (managementContext === 'tester' && loggedTesterIGN && ign.toLowerCase() === loggedTesterIGN.toLowerCase()) {
+                alert("Security Protocol: Testers cannot modify their own tier rankings."); return;
+            }
+            currentlyEditingIGN = ign;
+            document.getElementById('admin-dashboard-modal').classList.remove('show'); document.getElementById('tester-dashboard-modal').classList.remove('show');
+            const p = players.find(x => x.ign === currentlyEditingIGN);
+            document.getElementById('edit-player-name').innerText = p.ign; document.getElementById('edit-avatar').src = `https://mc-heads.net/avatar/${p.ign}/48`;
+            document.getElementById('edit-region').value = p.region.toUpperCase();
+            const titleWrapper = document.getElementById('custom-title-wrapper');
+            const regionWrapper = document.getElementById('region-edit-wrapper');
+            
+            if (managementContext === 'admin') { 
+                titleWrapper.style.display = 'flex'; regionWrapper.style.display = 'flex'; 
+                document.getElementById('edit-custom-title').value = p.custom_title || ''; 
+            } else { 
+                titleWrapper.style.display = 'none'; regionWrapper.style.display = 'none'; 
+            }
+            
+            const opts = ["unranked", "ht1","lt1","ht2","lt2","ht3","lt3","ht4","lt4","ht5","lt5"];
+            let html = '';
+            gameKeys.forEach(k => {
+                let optionsHtml = opts.map(o => `<option value="${o}" ${p.tiers[k] === o ? 'selected' : ''}>${o.toUpperCase()}</option>`).join('');
+                html += `<div class="edit-group"><label><i class="fa-solid ${gameIcons[k]}"></i> ${k.replace('Fight','')}</label><select class="edit-select" id="edit-${k}">${optionsHtml}</select></div>`;
+            });
+            document.getElementById('edit-form-grid').innerHTML = html;
+            document.getElementById('edit-modal').classList.add('show');
+        }
+
+        function updateLastTestedBanner() {
+            if (!lastTestedRecord || !lastTestedRecord.mode) return;
+            const banner = document.getElementById('last-tested'); 
+            banner.style.display = "inline-flex";
+            const cleanModeName = lastTestedRecord.mode.replace('Fight', '');
+            banner.innerHTML = `<i class="fa-solid ${gameIcons[lastTestedRecord.mode]}"></i> Last Test: ${cleanModeName}`;
+            banner.style.transform = 'scale(1.05)'; setTimeout(() => { banner.style.transform = 'scale(1)'; }, 200);
+        }
+
+        async function savePlayerEdit() {
+            const p = players.find(x => x.ign === currentlyEditingIGN);
+            if(p) {
+                let changedModes = [];
+                const testerAllowedTiers = ['ht5', 'lt5', 'lt4', 'ht4', 'lt3', 'unranked'];
+
+                if (managementContext === 'tester') {
+                    for (let k of gameKeys) {
+                        let updatedTier = document.getElementById(`edit-${k}`).value;
+                        if(p.tiers[k] !== updatedTier && !testerAllowedTiers.includes(updatedTier)) {
+                            alert(`⚠️ ERROR: Testers are restricted to HT5, LT5, LT4, HT4, LT3, and Unranked.`); return; 
+                        }
+                    }
+                }
+
+                gameKeys.forEach(k => { 
+                    let updatedTier = document.getElementById(`edit-${k}`).value;
+                    if(p.tiers[k] !== updatedTier) { 
+                        p.tiers[k] = updatedTier; changedModes.push(k); 
+                    }
+                });
+                
+                let dbPayload = { tiers: p.tiers };
+
+                if (managementContext === 'admin') {
+                    p.region = document.getElementById('edit-region').value;
+                    const titleVal = document.getElementById('edit-custom-title').value.trim();
+                    p.custom_title = titleVal !== '' ? titleVal : null;
+                    dbPayload.region = p.region;
+                    dbPayload.custom_title = p.custom_title;
+                }
+
+                // Push to Supabase DB
+                const { error } = await supabaseClient.from('players').update(dbPayload).eq('ign', p.ign);
+                if (error) { alert("Error saving changes."); return; }
+
+                if (changedModes.length > 0) { 
+                    const modeUpdated = changedModes[changedModes.length - 1];
+                    lastTestedRecord = { mode: modeUpdated, time: Date.now() };
+                    updateLastTestedBanner(); 
+                    let actor = managementContext === 'admin' ? 'Admin' : `Tester (${loggedTesterIGN})`;
+                    logSystemEvent('Tier Update', `${actor} updated ${p.ign}'s Tier: ${modeUpdated}`);
+                }
+
+                calculateScoresAndSort(); renderLeaderboard();
+            }
+            document.getElementById('edit-modal').classList.remove('show'); returnToDashboard();
+        }
+
+        function returnToDashboard() {
+            document.getElementById('edit-modal').classList.remove('show'); document.getElementById('add-player-modal').classList.remove('show');
+            if (managementContext === 'admin') { renderAdminList(document.getElementById('admin-search').value); document.getElementById('admin-dashboard-modal').classList.add('show'); } 
+            else { renderTesterPanelList(document.getElementById('tester-panel-search').value); document.getElementById('tester-dashboard-modal').classList.add('show'); }
+        }
+
+        // Announcements Module
+        function renderAnnouncementsAdmin() {
+            const adminList = document.getElementById('admin-announcements-list');
+            if (announcements.length === 0) { adminList.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text-dim); font-size:0.8rem;">No announcements.</div>`; } 
+            else {
+                adminList.innerHTML = announcements.map(a => `
+                    <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <div style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+                            <span style="font-size:0.65rem; font-weight:800; color:var(--accent-purple); display:block; text-transform:uppercase;">${a.tag}</span><strong style="color:#fff; font-size:0.85rem;">${a.title}</strong>
+                        </div><button class="admin-action-btn btn-red" onclick="deleteAnnouncement(${a.id})" style="padding:4px 8px; font-size:0.75rem;"><i class="fa-solid fa-trash"></i></button>
+                    </div>`).join('');
+            }
+        }
+
+        function renderAnnouncementsPublic() {
+            const publicList = document.getElementById('public-announcements-list');
+            if (announcements.length === 0) { publicList.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-dim); font-size:0.9rem;">No active broadcasts posted right now.</div>`; } 
+            else {
+                publicList.innerHTML = announcements.map(a => `
+                    <div style="background:rgba(255,255,255,0.02); padding:16px; border-radius:12px; border:1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-dim); margin-bottom:6px; font-weight:700;"><span style="letter-spacing:0.5px; color:var(--accent-purple);">${a.tag.toUpperCase()}</span><span>${new Date(a.created_at).toLocaleDateString()}</span></div>
+                        <h4 style="margin:0 0 6px 0; color:#fff; font-weight:800;">${a.title}</h4><p style="margin:0; font-size:0.85rem; color:var(--text-dim); line-height:1.5;">${a.content}</p>
+                    </div>`).join('');
+            }
+        }
+
+        async function addAnnouncement() {
+            const tag = document.getElementById('announcement-tag').value.trim();
+            const title = document.getElementById('announcement-title').value.trim(); const content = document.getElementById('announcement-content').value.trim();
+            if (!tag || !title || !content) { alert("Please fill out all parameters."); return; }
+            
+            const newObj = { tag: tag, title: title, content: content };
+            const { data, error } = await supabaseClient.from('announcements').insert([newObj]).select();
+            if(!error && data) {
+                announcements.unshift(data[0]);
+                document.getElementById('announcement-tag').value = ""; document.getElementById('announcement-title').value = ""; document.getElementById('announcement-content').value = "";
+                renderAnnouncementsAdmin(); renderAnnouncementsPublic();
+            }
+        }
+
+        async function deleteAnnouncement(id) {
+            if (confirm("Confirm Purge: Clear this broadcast announcement row?")) { 
+                await supabaseClient.from('announcements').delete().eq('id', id);
+                announcements = announcements.filter(a => a.id !== id);
+                renderAnnouncementsAdmin(); renderAnnouncementsPublic(); 
+            }
+        }
+
+        // Leaderboard Generation
+        function getBadgesHTML(playerTiers) {
+            return gameKeys.map(m => {
+                const tier = playerTiers[m] || "unranked"; if(tier === "unranked") return '';
+                return `<div class="tier-combo" title="${m}: ${tier.toUpperCase()}"><div class="icon-circle c-${tier} ${tier==='ht1'?'glow-ht1':''}"><i class="fa-solid ${gameIcons[m]} badge-icon"></i></div><span class="tier-text c-${tier} ${tier==='ht1'?'glow-ht1':''}">${tier.toUpperCase()}</span></div>`;
+            }).join('');
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboard-container');
+            let filtered = currentRegionFilter !== "ALL" ? players.filter(p => p.region.toUpperCase() === currentRegionFilter) : [...players];
+            if (currentMode === "Overall") {
+                if(filtered.length === 0) { container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-dim);">No players registered in this region.</div>`; return; }
+                const totalPages = Math.ceil(filtered.length / playersPerPage);
+                const pageData = filtered.slice((currentPage - 1) * playersPerPage, currentPage * playersPerPage);
+                let html = pageData.map((p, index) => {
+                    let globalIndex = (currentPage - 1) * playersPerPage + index; 
+                    let rankClass = globalIndex === 0 ? "rank-1" : globalIndex === 1 ? "rank-2" : globalIndex === 2 ? "rank-3" : "rank-other";
+                    return `
+                        <div class="player-card" onclick="showProfile('${p.ign}')">
+                            <div class="rank-section ${rankClass}"><span class="rank-num">#${globalIndex + 1}</span><img src="https://mc-heads.net/body/${p.ign}/85" class="avatar-bust" alt=""></div>
+                            <div class="info-section"><div class="player-name">${p.ign}</div><div class="region-badge region-${p.region.toLowerCase()}">${p.region}</div>
+                                <div class="title-row"><i class="fa-solid fa-layer-group title-icon"></i><span class="title-text">${p.title}</span><span class="points-text">(${p.score} pts)</span></div>
+                            </div><div class="badges-section">${getBadgesHTML(p.tiers)}</div>
+                        </div>`;
+                }).join('');
+
+                if (totalPages > 1) {
+                    html += `
+                        <div class="pagination">
+                            <button class="top-btn" onclick="changePage(-1)" ${currentPage <= 1 ? 'style="opacity:0.5; cursor:not-allowed;" disabled' : ''}>
+                                <i class="fa-solid fa-chevron-left"></i> Prev
+                            </button>
+                            <span style="font-weight:700; color:var(--text-dim);">Page ${currentPage} of ${totalPages}</span>
+                            <button class="top-btn" onclick="changePage(1)" ${currentPage >= totalPages ? 'style="opacity:0.5; cursor:not-allowed;" disabled' : ''}>
+                                Next <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>`;
+                }
+                container.innerHTML = html;
+            } else {
+                let towersHTML = '<div class="tower-grid">';
+                const columns = [ { name: "Tier 1", key: ["ht1", "lt1"], headerClass: "header-t1" }, { name: "Tier 2", key: ["ht2", "lt2"], headerClass: "header-t2" }, { name: "Tier 3", key: ["ht3", "lt3"], headerClass: "header-t3" }, { name: "Tier 4", key: ["ht4", "lt4"], headerClass: "header-t4" }, { name: "Tier 5", key: ["ht5", "lt5"], headerClass: "header-t5" } ];
+                columns.forEach(col => {
+                    let colPlayers = filtered.filter(p => col.key.includes(p.tiers[currentMode])).sort((a,b) => scoreMap[b.tiers[currentMode]] - scoreMap[a.tiers[currentMode]]);
+                    towersHTML += `<div class="tower-column"><div class="tower-header ${col.headerClass}">${col.name}</div><div class="tower-list">
+                                ${colPlayers.length === 0 ? '<div style="padding:20px; text-align:center; font-size:0.8rem; color:var(--text-dim);">Empty</div>' : colPlayers.map(p => `
+                                    <div class="tower-item" onclick="showProfile('${p.ign}')"><img src="https://mc-heads.net/avatar/${p.ign}/24" alt=""><span class="name">${p.ign} <span style="font-size:0.65rem; display:block;" class="c-${p.tiers[currentMode]}">${p.region}</span></span><span class="tower-chip c-${p.tiers[currentMode]}">${p.tiers[currentMode].toUpperCase()}</span></div>
+                                `).join('')}</div></div>`;
+                });
+                container.innerHTML = towersHTML + '</div>';
+            }
+        }
+
+        /* 3D FULL VIEW SKIN ENGINE CONTROLLER */
+        function showProfile(ign) {
+            const p = players.find(pl => pl.ign.toLowerCase() === ign.toLowerCase());
+            if(!p) return;
+            document.getElementById('m-ign').innerText = p.ign; document.getElementById('m-title').innerText = p.title;
+            document.getElementById('m-score').innerText = `(${p.score} pts)`; document.getElementById('m-region-badge-container').innerHTML = `<div class="region-badge region-${p.region.toLowerCase()}">${p.region} Region</div>`;
+            const canvas = document.getElementById("skin-canvas");
+            const skinContainer = document.getElementById("m-skin-container");
+            const skinUrl = `https://minotar.net/skin/${p.ign}`;
+            
+            if (!playerSkinViewer) {
+                playerSkinViewer = new skinview3d.SkinViewer({ canvas: canvas, width: 230, height: 350, skin: skinUrl });
+                playerSkinViewer.camera.position.z = 62; playerSkinViewer.camera.position.y = -5;
+                playerSkinViewer.autoRotate = false;
+                const control = skinview3d.createOrbitControls(playerSkinViewer);
+                control.enableRotate = true; control.enableZoom = false; control.enablePan = false;
+                
+                canvas.addEventListener('mousedown', () => isDragging3D = true);
+                window.addEventListener('mouseup', () => isDragging3D = false);
+                skinContainer.addEventListener('mouseenter', () => isHovering3D = true);
+                skinContainer.addEventListener('mouseleave', () => isHovering3D = false);
+                
+                window.addEventListener('mousemove', (e) => {
+                    if (playerSkinViewer && playerSkinViewer.player && document.getElementById('profile-modal').classList.contains('show') && !isDragging3D && !isHovering3D) {
+                        const rect = canvas.getBoundingClientRect(); 
+                        const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
+                        let targetRotY = (e.clientX - centerX) * 0.0035; let targetRotX = (e.clientY - centerY) * 0.0025; 
+                        playerSkinViewer.player.rotation.y = Math.max(-0.65, Math.min(0.65, targetRotY)); 
+                        playerSkinViewer.player.rotation.x = Math.max(-0.25, Math.min(0.25, targetRotX));
+                    }
+                });
+            } else {
+                playerSkinViewer.width = 230; playerSkinViewer.height = 350; playerSkinViewer.loadSkin(skinUrl);
+                if(playerSkinViewer.player) { playerSkinViewer.player.rotation.x = 0; playerSkinViewer.player.rotation.y = 0; }
+                playerSkinViewer.camera.position.x = 0; playerSkinViewer.camera.position.y = -5; playerSkinViewer.camera.position.z = 62; playerSkinViewer.camera.lookAt(0, -5, 0);
+            }
+
+            document.getElementById('modal-badges').innerHTML = gameKeys.map(m => {
+                const tier = p.tiers[m] || "unranked";
+                return `<div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px; text-align:center;"><div style="font-size:0.7rem; color:var(--text-dim); font-weight:800; text-transform:uppercase; margin-bottom:4px;">${m.replace('Fight','')}</div><div class="c-${tier}" style="font-weight:900; font-size:0.9rem;">${tier.toUpperCase()}</div></div>`;
+            }).join('');
+            document.getElementById('profile-modal').classList.add('show');
+        }
+
+        function handleSearch(q) {
+            const dd = document.getElementById('search-dropdown');
+            if(!q.trim()) { dd.classList.remove('show'); return; }
+            const res = players.filter(p => p.ign.toLowerCase().includes(q.toLowerCase()));
+            if(res.length === 0) { dd.classList.remove('show'); return; }
+            dd.innerHTML = res.map(p => `<div class="search-item" onclick="showProfile('${p.ign}')"><img src="https://mc-heads.net/avatar/${p.ign}/28" class="search-avatar" alt=""><span class="search-ign">${p.ign} <span style="font-size:0.65rem; font-weight:500;" class="c-ht2">(${p.region})</span></span><span class="search-score">${p.score} pts</span></div>`).join('');
+            dd.classList.add('show');
+        }
+
+        function copyIp(text) { navigator.clipboard.writeText(text).then(() => { alert(`Copied "${text}" connection address!`); }); }
+
+        window.onload = () => { 
+            fetchInitialData();
+            updateLastTestedBanner();
+        };
+    </script>
 </body>
 </html>
