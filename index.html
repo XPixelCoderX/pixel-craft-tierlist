@@ -46,7 +46,6 @@
       position: relative;
     }
 
-    /* Particle Canvas */
     #particle-canvas {
       position: fixed;
       top: 0;
@@ -57,7 +56,6 @@
       z-index: 1;
     }
 
-    /* Sidebar */
     .sidebar {
       width: 280px;
       background: var(--sidebar-bg);
@@ -122,7 +120,6 @@
       flex: 1;
     }
 
-    /* Main Content */
     .main-content {
       flex: 1;
       display: flex;
@@ -248,7 +245,6 @@
       color: transparent;
     }
 
-    /* Podium */
     .podium {
       display: flex;
       justify-content: center;
@@ -308,7 +304,6 @@
       color: var(--text-muted);
     }
 
-    /* Player Rows */
     .player-row {
       display: flex;
       align-items: center;
@@ -380,7 +375,6 @@
     .tier-lt5 { color: #374151; background: rgba(55, 65, 81, 0.12); }
     .tier-unranked { color: #475569; background: rgba(71, 85, 105, 0.12); }
 
-    /* Tower Grid */
     .tower-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -458,7 +452,6 @@
       background: rgba(0, 0, 0, 0.5);
     }
 
-    /* Modal */
     .modal {
       position: fixed;
       top: 0;
@@ -543,7 +536,7 @@
 
 <div class="sidebar" id="sidebar">
   <div class="logo">
-    <img src="https://via.placeholder.com/36?text=PT" alt="Pixel Tiers" onerror="this.src='https://ui-avatars.com/api/?name=PT&background=8b5cf6&color=fff&rounded=true';">
+    <img src="https://via.placeholder.com/36?text=PT" alt="Pixel Tiers">
     Pixel Tiers
   </div>
   <div id="nav-container"></div>
@@ -566,10 +559,9 @@
   <div class="modal-card" id="profileInner"></div>
 </div>
 
+<script src="playerdata.js"></script>
 <script>
-  // ======================== COMPLETE APPLICATION SCRIPT ========================
   (function() {
-    // --- Configuration ---
     const GAME_MODES = [
       "vanilla", "pot", "netheriteop", "smp", "mace", "uhc", "axe", "sword", "diamondsmp", "cart",
       "elytraquake", "netheritesword", "fireballmace", "fireballfight", "bedfight",
@@ -600,7 +592,6 @@
     let currentMode = "overall";
     let currentRegion = "ALL";
 
-    // --- Helper Functions ---
     function parsePlayersFromData(rawData) {
       if (!rawData || !Array.isArray(rawData)) return [];
       return rawData.map(p => {
@@ -625,13 +616,28 @@
       players.sort((a, b) => b.score - a.score);
     }
 
-    // Load data
+    // Load data - check multiple possible variable names
     if (typeof window.defaultPlayers !== 'undefined') {
       players = parsePlayersFromData(window.defaultPlayers);
       calculateScores();
+      console.log("Loaded", players.length, "players from window.defaultPlayers");
+    } else if (typeof window.playersData !== 'undefined') {
+      players = parsePlayersFromData(window.playersData);
+      calculateScores();
+      console.log("Loaded", players.length, "players from window.playersData");
+    } else if (typeof window.playerData !== 'undefined') {
+      players = parsePlayersFromData(window.playerData);
+      calculateScores();
+      console.log("Loaded", players.length, "players from window.playerData");
     } else {
-      console.warn("playerdata.js not loaded. Using fallback empty data.");
-      players = [];
+      console.warn("No player data found. Using fallback data.");
+      // Fallback data
+      players = parsePlayersFromData([
+        { ign: "ExamplePlayer", region: "NA", tiers: "sword:ht1,pot:ht2,uhc:ht3" },
+        { ign: "TestUser", region: "EU", tiers: "sword:lt2,pot:ht1,uhc:ht2" },
+        { ign: "DemoAccount", region: "AS", tiers: "sword:ht3,pot:lt2,uhc:ht4" }
+      ]);
+      calculateScores();
     }
 
     function filterByRegion() {
@@ -645,14 +651,12 @@
       return filtered;
     }
 
-    // --- Rendering Functions ---
     function renderOverall() {
       let list = getRankedList();
       let container = document.getElementById('dynamic-content');
       const regionOptions = ["ALL", "NA", "EU", "SA", "AS", "OCE", "AF"];
       let html = `<div class="header-row"><h1>Global Rankings</h1><select class="region-select" id="regionFilterSelect">${regionOptions.map(r => `<option value="${r}" ${currentRegion === r ? 'selected' : ''}>${r === 'ALL' ? 'All Regions' : r}</option>`).join('')}</select></div>`;
 
-      // Podium
       if (list.length >= 3) {
         html += `<div class="podium">
           <div class="podium-card silver" onclick="window.showProfile('${list[1].ign}')"><img src="https://mc-heads.net/avatar/${list[1].ign}/80"><h2>#2</h2><h3>${list[1].ign}</h3><span style="font-size:0.7rem;color:#9ca3af;">${list[1].score} pts</span></div>
@@ -663,7 +667,6 @@
         html += `<div class="podium"><div class="podium-card gold" onclick="window.showProfile('${list[0].ign}')"><img src="https://mc-heads.net/avatar/${list[0].ign}/80"><h2>#1</h2><h3>${list[0].ign}</h3></div></div>`;
       }
 
-      // Tier Towers
       html += `<div style="margin: 30px 0 20px 0;"><h2 style="font-weight:700;">Tier Towers</h2><p style="color:var(--text-muted); margin-bottom:12px;">Top players by rank category</p></div>`;
       html += `<div class="tower-grid">`;
       for (let [towerName, towerInfo] of Object.entries(TOWER_GROUPS)) {
@@ -694,7 +697,6 @@
       }
       html += `</div>`;
 
-      // Full Leaderboard
       html += `<div style="margin-top: 35px;"><h2 style="font-weight:700;">Complete Leaderboard</h2></div>`;
       if (list.length === 0) html += '<p style="color:var(--text-muted); text-align:center; padding:40px;">No players found.</p>';
       else {
@@ -733,7 +735,6 @@
       document.getElementById('modeRegionSelect')?.addEventListener('change', (e) => { currentRegion = e.target.value; renderModeRankings(mode); });
     }
 
-    // --- Sidebar Navigation ---
     function buildSidebar() {
       let navDiv = document.getElementById('nav-container');
       let navHtml = `<div class="nav-item active" data-mode="overall"><i class="fa-solid fa-trophy"></i> Overall</div>`;
@@ -755,7 +756,6 @@
       });
     }
 
-    // --- Profile Modal ---
     window.showProfile = function(ign) {
       let p = players.find(pl => pl.ign === ign);
       if (!p) return;
@@ -775,7 +775,6 @@
     window.closeModal = function() { document.getElementById('profileModal').classList.remove('active'); };
     document.querySelector('.modal')?.addEventListener('click', (e) => { if (e.target === document.getElementById('profileModal')) closeModal(); });
 
-    // --- Server Status & Search ---
     async function fetchServerStatus() {
       try {
         let res = await fetch('https://api.mcsrvstat.us/2/play.pcsmp.net');
@@ -802,7 +801,6 @@
       container.innerHTML = html;
     });
 
-    // --- Particle Effect (Subtle Snow) ---
     function initParticles() {
       const canvas = document.getElementById('particle-canvas');
       const ctx = canvas.getContext('2d');
