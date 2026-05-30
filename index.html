@@ -686,7 +686,7 @@
         html += `<div class="tower-col"><div class="tower-header ${towerInfo.headerClass}">${towerName} · ${towerInfo.label}</div><div class="tower-list">`;
         if (topPlayers.length === 0) html += `<div style="padding:20px;text-align:center;color:var(--text-muted);">— No players —</div>`;
         topPlayers.forEach(pl => {
-          let tierShort = "HT1";
+          let tierShort = "PT";
           for (let m of GAME_MODES) {
             let t = pl.tiers[m];
             if (t && TIER_SCORES[t] >= 20) { tierShort = t.toUpperCase(); break; }
