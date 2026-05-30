@@ -1,12 +1,12 @@
 // playerdata.js
 window.defaultPlayers = [
   {
-    ign: "n2ab",
+    ign: "dummy",
     region: "NA",
     tiers: "sword:lt2"
   },
   {
-    ign: "eagly",
+    ign: "dummy2",
     region: "NA",
     tiers: "crystal:lt4"
   }
