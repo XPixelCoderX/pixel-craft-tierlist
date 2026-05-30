@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>Pixel Tiers • Dashboard</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>Pixel Tiers Rankings</title>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -149,6 +149,11 @@
     .search-icon { position: absolute; left: 14px; color: var(--text-muted); }
     .content-scroll { padding: 95px 32px 32px 32px; overflow-y: auto; flex: 1; }
     .region-select {
+      appearance:none;
+      background:linear-gradient(180deg,rgba(20,24,34,.95),rgba(14,18,28,.95));
+      border:1px solid rgba(139,92,246,.35);
+      box-shadow:0 0 18px rgba(139,92,246,.12);
+
       background: rgba(20,24,34,0.7);
       border: 1px solid var(--border-light);
       color: white;
@@ -307,12 +312,24 @@
       .top-bar { padding: 12px 16px; }
       .content-scroll { padding: 100px 16px 16px 16px; }
     }
-  </style>
+  
+    ::-webkit-scrollbar{width:10px;height:10px}
+    ::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
+    ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(139,92,246,.9),rgba(139,92,246,.45));border-radius:999px}
+    .podium{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:28px}
+    .podium-card{padding:24px;border-radius:22px;text-align:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px);transition:.25s}
+    .podium-card:hover{transform:translateY(-6px) scale(1.02)}
+    .gold{box-shadow:0 0 35px rgba(251,191,36,.25)}
+    .silver{box-shadow:0 0 35px rgba(156,163,175,.25)}
+    .bronze{box-shadow:0 0 35px rgba(217,119,66,.25)}
+    .player-head{width:42px;height:42px;border-radius:10px}
+
+</style>
 </head>
 <body>
 <div class="sidebar" id="sidebar">
   <div class="logo">
-    <img src="logo.png" alt="Pixel Tiers" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+    <img src="./logo.png" alt="Pixel Tiers" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
     <div style="display:none; width:34px; height:34px; border-radius:8px; background:var(--accent); align-items:center; justify-content:center; font-weight:900; font-size:1rem;">PT</div>
     Pixel Tiers
   </div>
@@ -321,7 +338,7 @@
 </div>
 
 <div class="main-content">
-  <div class="top-bar">
+  <div class="top-bar"><div id="serverStatus" class="btn">Loading server...</div>
     <div class="search-wrap">
       <i class="fa-solid fa-search search-icon"></i>
       <input type="text" class="search-input" placeholder="Search player..." oninput="handleSearch(this.value)">
@@ -352,7 +369,7 @@
     ];
 
     const MODE_DISPLAY = {
-      overall: "Overall Rankings",
+      overall: "Global Rankings",
       vanilla: "Vanilla", pot: "Pot", netheriteop: "Netherite OP", smp: "SMP",
       mace: "Mace", uhc: "UHC", axe: "Axe", sword: "Sword", diamondsmp: "Diamond SMP",
       cart: "Cart", elytraquake: "Elytra Quake", netheritesword: "Netherite Sword",
@@ -415,7 +432,8 @@
         }
         
         return {
-          ign: p.ign,
+          ign: p.ign || p.name,
+          rank: p["in-game-rank"] || "member",
           region: p.region || "NA",
           title: p.title || null,
           tiers: tiers
@@ -540,7 +558,7 @@
       if (currentMode === "overall") {
         renderOverall();
       } else {
-        renderTowerView(currentMode);
+        renderModeRankings(currentMode);
       }
     }
 
@@ -555,14 +573,23 @@
       
       let html = `
         <div class="header-row">
-          <h1>Overall Rankings</h1>
+          <h1>Global Rankings</h1>
           <select class="region-select" onchange="changeRegion(this.value)">
             ${regionOptions.map(r => `<option value="${r}" ${currentRegion === r ? 'selected' : ''}>${r === 'ALL' ? 'All Regions' : r}</option>`).join('')}
           </select>
         </div>
       `;
 
-      if (list.length === 0) {
+      
+if(list.length>=3){
+html += `<div class="podium">
+<div class="podium-card silver"><img class="player-head" src="https://mc-heads.net/avatar/${list[1].ign}/64"><h2>🥈 #2</h2><h3>${list[1].ign}</h3></div>
+<div class="podium-card gold"><img class="player-head" src="https://mc-heads.net/avatar/${list[0].ign}/64"><h2>🥇 #1</h2><h3>${list[0].ign}</h3></div>
+<div class="podium-card bronze"><img class="player-head" src="https://mc-heads.net/avatar/${list[2].ign}/64"><h2>🥉 #3</h2><h3>${list[2].ign}</h3></div>
+</div>`;
+}
+if (list.length === 0) {
+
         html += '<p style="color:var(--text-muted); text-align:center; padding:40px;">No players found.</p>';
       } else {
         list.forEach((p, i) => {
@@ -582,45 +609,30 @@
       container.innerHTML = html;
     }
 
-    function renderTowerView(mode) {
+    
+function renderModeRankings(mode) {
       const container = document.getElementById('dynamic-content');
-      const filtered = filterPlayers();
-      
-      let html = `<h1 style="font-weight:900; font-size:2rem; margin-bottom:20px;">${MODE_DISPLAY[mode] || mode} Towers</h1>`;
-      html += '<div class="tower-grid">';
-      
-      Object.entries(TOWER_GROUPS).forEach(([groupKey, group]) => {
-        const tierPlayers = filtered.filter(p => group.tiers.includes(p.tiers[mode]));
-        
-        // Sort within group: ht first, then lt
-        tierPlayers.sort((a, b) => {
-          const aTier = a.tiers[mode];
-          const bTier = b.tiers[mode];
-          const aScore = TIER_SCORES[aTier] || 0;
-          const bScore = TIER_SCORES[bTier] || 0;
-          return bScore - aScore;
-        });
-        
+      const filtered = filterPlayers().filter(p=>p.tiers[mode] !== 'unranked');
+
+      filtered.sort((a,b)=>(TIER_SCORES[b.tiers[mode]]||0)-(TIER_SCORES[a.tiers[mode]]||0));
+
+      let html = `<h1 style="font-weight:900;font-size:2rem;margin-bottom:20px;">${MODE_DISPLAY[mode] || mode} Rankings</h1>`;
+if(filtered.length===0){
+container.innerHTML=html+'<p style="color:var(--text-muted);padding:20px">No players currently ranked in this category.</p>';
+return;
+}
+
+      filtered.forEach((p,i)=>{
         html += `
-          <div class="tower-col">
-            <div class="tower-header ${group.headerClass}">${group.label}</div>
-            ${tierPlayers.length === 0 ? 
-              '<div class="tower-item" style="color:var(--text-muted); justify-content:center;">Empty</div>' : 
-              tierPlayers.map(p => {
-                const tier = p.tiers[mode];
-                const tierColorClass = TIER_COLORS[tier] || 'tier-unranked';
-                return `
-                  <div class="tower-item" onclick="showProfile('${p.ign}')">
-                    <span>${p.ign}</span>
-                    <span class="tower-item-tier ${tierColorClass}">${tier.toUpperCase()}</span>
-                  </div>`;
-              }).join('')
-            }
-          </div>
-        `;
+        <div class="player-row" onclick="showProfile('${p.ign}')">
+          <span class="rank-num">#${i+1}</span>
+          <img class="player-head" src="https://mc-heads.net/avatar/${p.ign}/64">
+          <span class="player-ign">${p.ign}</span>
+          <span class="player-region">${p.region}</span>
+          <span class="tier-badge ${TIER_COLORS[p.tiers[mode]]||''}">${p.tiers[mode].toUpperCase()}</span>
+        </div>`;
       });
-      
-      html += '</div>';
+
       container.innerHTML = html;
     }
 
@@ -686,7 +698,22 @@
       players = [];
     }
     
-    buildNav();
+    
+async function updateServerStatus(){
+try{
+const r=await fetch('https://api.mcsrvstat.us/2/play.pcsmp.net');
+const d=await r.json();
+document.getElementById('serverStatus').innerHTML=d.online?
+'🟢 '+(d.players?.online||0)+' Players Online':
+'🔴 Server Offline';
+}catch(e){
+document.getElementById('serverStatus').innerHTML='🔴 Server Offline';
+}
+}
+updateServerStatus();
+setInterval(updateServerStatus,60000);
+
+buildNav();
     renderContent();
   })();
 </script>
