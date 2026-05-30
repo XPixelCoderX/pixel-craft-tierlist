@@ -1,13 +1,23 @@
-// playerdata.js
 window.defaultPlayers = [
-  {
-    ign: "dummy",
-    region: "NA",
-    tiers: "sword:lt2"
-  },
-  {
-    ign: "dummy2",
-    region: "NA",
-    tiers: "crystal:lt4"
-  }
+  { ign: "SoVirala", region: "NA", tiers: "mace:ht4" },
+  { ign: "diarea", region: "NA", tiers: "sword:lt5" },
+  { ign: "Dominate", region: "NA", tiers: "smp:lt4" },
+  { ign: "sarou_", region: "NA", tiers: "mace:lt3" },
+  { ign: "liam_is_a_lemon", region: "NA", tiers: "other:ht4" },
+  { ign: "MrBub3n", region: "NA", tiers: "sword:ht5,other:lt5" },
+  { ign: "RandomahhDev", region: "NA", tiers: "sword:lt3" },
+  { ign: "TheBattleLoafs", region: "NA", tiers: "mace:ht5" },
+  { ign: "AWA_1", region: "NA", tiers: "axe:ht5" },
+  { ign: "crystal", region: "NA", tiers: "crystal:lt5" },
+  { ign: "Vxnish", region: "NA", tiers: "jousting:lt4,mace:ht4" },
+  { ign: "L1ngCr4zy", region: "NA", tiers: "jousting:lt4,mace:ht4" },
+  { ign: "invalid", region: "NA", tiers: "sword:ht4" },
+  { ign: "Koolblox31", region: "NA", tiers: "uhc:lt5" },
+  { ign: "JeremiahSplash", region: "NA", tiers: "sword:lt5" },
+  { ign: "PixelFox", region: "NA", tiers: "crystal:ht5" },
+  { ign: "ZayMC", region: "NA", tiers: "uhc:lt4" },
+  { ign: "yyyyyamar", region: "NA", tiers: "elytra_mace:lt3" },
+  { ign: "sigmasigmaboyfkc", region: "NA", tiers: "sword:lt4" },
+  { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
+  { ign: "TechComp42", region: "NA", tiers: "mace:lt5" }
 ];
