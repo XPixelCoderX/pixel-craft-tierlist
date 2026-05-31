@@ -17,6 +17,7 @@ window.defaultPlayers = [
   { ign: "ZayMC", region: "NA", tiers: "shieldlessuhc:lt4" },
   { ign: "yyyyyamar", region: "NA", tiers: "elytramace:lt3" },
   { ign: "sigmasigmaboyfkc", region: "NA", tiers: "sword:lt4" },
+  { ign: "_FlameFrag_", region: "NA", tiers: "crystal:lt3" },
   { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
   { ign: "M4LW4RE_3310", region: "NA", tiers: "axe:lt5,cart:lt5" },
   { ign: "Flamitie", region: "NA", tiers: "crystal:lt5" },
