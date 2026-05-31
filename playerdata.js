@@ -18,5 +18,6 @@ window.defaultPlayers = [
   { ign: "yyyyyamar", region: "NA", tiers: "elytramace:lt3" },
   { ign: "sigmasigmaboyfkc", region: "NA", tiers: "sword:lt4" },
   { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
+  { ign: "MrB3n", region: "NA", tiers: "mace:ht5,op:lt5,sword:lt4" },
   { ign: "TechComp42", region: "NA", tiers: "mace:lt5" }
 ];
