@@ -785,8 +785,9 @@
   let currentMode   = 'overall';
   let currentRegion = 'ALL';
   let lbPage        = 1;
+  let refreshInterval = null;
 
-  /* ─────────── DATA LOADING ─────────── */
+  /* ─────────── DATA LOADING & REFRESH LOGIC ─────────── */
   function parse(raw) {
     if (!raw || !Array.isArray(raw)) return [];
     return raw.map(p => {
@@ -809,28 +810,68 @@
     players.sort((a, b) => b.score - a.score);
   }
 
-  const src = window.defaultPlayers || window.playersData || window.playerData;
-  if (src) {
-    players = parse(src); calcScores();
-  } else {
-    players = parse([
-      {ign:'CrystalKnight', region:'NA', tiers:'sword:ht1,pot:ht2,uhc:ht3,crystal:lt1,axe:ht2,mace:lt1'},
-      {ign:'VoidStriker',   region:'EU', tiers:'sword:lt2,pot:ht1,uhc:ht2,axe:lt1,crystal:ht3,sumo:ht1'},
-      {ign:'NebulaSword',   region:'AS', tiers:'sword:ht3,pot:lt2,uhc:ht4,mace:ht2,nodebuff:lt1'},
-      {ign:'StarPvP',       region:'SA', tiers:'sword:lt1,pot:ht3,crystal:ht2,axe:ht1,boxing:lt1'},
-      {ign:'CosmicBow',     region:'OCE',tiers:'sword:ht2,mace:lt2,uhc:lt1,pot:ht1,archer:ht1'},
-      {ign:'PrismBlade',    region:'NA', tiers:'sword:lt3,axe:ht3,crystal:lt2,bridges:ht2'},
-      {ign:'AuroraFight',   region:'EU', tiers:'pot:lt3,uhc:lt2,mace:ht3,gapple:ht2'},
-      {ign:'QuasarHit',     region:'AS', tiers:'sword:ht4,crystal:lt3,axe:lt2,sumo:lt2'},
-      {ign:'PulseMage',     region:'NA', tiers:'mace:ht4,pot:lt3,sword:lt3,boxing:ht3'},
-      {ign:'NovaArcher',    region:'EU', tiers:'uhc:ht4,crystal:lt4,sword:ht5,archer:lt2'},
-      {ign:'OrbitalOp',     region:'NA', tiers:'pot:ht4,axe:lt3,mace:lt3,op:ht3'},
-      {ign:'StellarCrys',   region:'EU', tiers:'sword:lt4,uhc:lt3,crystal:ht4,crystaldiamond:ht3'},
-      {ign:'GalaxySMP',     region:'SA', tiers:'smp:ht2,diamondsmp:ht2,vanilla:ht3'},
-      {ign:'CometAxe',      region:'NA', tiers:'axe:ht2,sword:ht3,netheritesword:lt2'},
-      {ign:'PhotonPot',     region:'AS', tiers:'pot:ht2,uhc:lt3,shieldlessuhc:ht3'}
-    ]);
-    calcScores();
+  function loadPlayerData() {
+    const src = window.defaultPlayers || window.playersData || window.playerData;
+    if (src) {
+      players = parse(src); 
+      calcScores();
+    } else {
+      // fallback mock data if external fails
+      players = parse([
+        {ign:'CrystalKnight', region:'NA', tiers:'sword:ht1,pot:ht2,uhc:ht3,crystal:lt1,axe:ht2,mace:lt1'},
+        {ign:'VoidStriker',   region:'EU', tiers:'sword:lt2,pot:ht1,uhc:ht2,axe:lt1,crystal:ht3,sumo:ht1'},
+        {ign:'NebulaSword',   region:'AS', tiers:'sword:ht3,pot:lt2,uhc:ht4,mace:ht2,nodebuff:lt1'},
+        {ign:'StarPvP',       region:'SA', tiers:'sword:lt1,pot:ht3,crystal:ht2,axe:ht1,boxing:lt1'},
+        {ign:'CosmicBow',     region:'OCE',tiers:'sword:ht2,mace:lt2,uhc:lt1,pot:ht1,archer:ht1'},
+        {ign:'PrismBlade',    region:'NA', tiers:'sword:lt3,axe:ht3,crystal:lt2,bridges:ht2'},
+        {ign:'AuroraFight',   region:'EU', tiers:'pot:lt3,uhc:lt2,mace:ht3,gapple:ht2'},
+        {ign:'QuasarHit',     region:'AS', tiers:'sword:ht4,crystal:lt3,axe:lt2,sumo:lt2'},
+        {ign:'PulseMage',     region:'NA', tiers:'mace:ht4,pot:lt3,sword:lt3,boxing:ht3'},
+        {ign:'NovaArcher',    region:'EU', tiers:'uhc:ht4,crystal:lt4,sword:ht5,archer:lt2'},
+        {ign:'OrbitalOp',     region:'NA', tiers:'pot:ht4,axe:lt3,mace:lt3,op:ht3'},
+        {ign:'StellarCrys',   region:'EU', tiers:'sword:lt4,uhc:lt3,crystal:ht4,crystaldiamond:ht3'},
+        {ign:'GalaxySMP',     region:'SA', tiers:'smp:ht2,diamondsmp:ht2,vanilla:ht3'},
+        {ign:'CometAxe',      region:'NA', tiers:'axe:ht2,sword:ht3,netheritesword:lt2'},
+        {ign:'PhotonPot',     region:'AS', tiers:'pot:ht2,uhc:lt3,shieldlessuhc:ht3'}
+      ]);
+      calcScores();
+    }
+  }
+
+  // Core refresh function: reloads from global data source & re-renders UI
+  function refreshPlayerDataAndUI() {
+    loadPlayerData();
+    // Preserve current view state
+    if (currentMode === 'overall') {
+      renderOverall();
+    } else {
+      renderMode(currentMode);
+    }
+  }
+
+  // Initialize auto-refresh (30 sec) and manual (R key)
+  function initAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+      refreshPlayerDataAndUI();
+    }, 30000); // 30 seconds
+    
+    // Manual refresh on 'R' key press (case-insensitive)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault(); // prevents browser default (reload page) but keeps functionality
+        refreshPlayerDataAndUI();
+        // Optional visual feedback for user
+        const statusDiv = document.getElementById('serverStatus');
+        const originalHTML = statusDiv.innerHTML;
+        statusDiv.innerHTML = `<i class="fa-solid fa-arrows-rotate fa-fw" style="color:#a78bfa;"></i> Refreshing...`;
+        setTimeout(() => {
+          if (statusDiv.innerHTML.includes('Refreshing')) {
+            statusDiv.innerHTML = originalHTML;
+          }
+        }, 800);
+      }
+    });
   }
 
   /* ─────────── HELPERS ─────────── */
@@ -901,7 +942,6 @@
 
   /* ─────────── RANKINGS (towers) ─────────── */
   function towersHTML(list, mode) {
-    // mode=null → group by best overall tier; mode=string → group by that mode's tier
     let html = '<div class="tower-grid">';
     for (const [name, info] of Object.entries(TOWER_GROUPS)) {
       const inTier = list.filter(p =>
@@ -1049,7 +1089,6 @@
   window.goPage = function (pg) {
     lbPage = pg;
     renderOverall();
-    // scroll to leaderboard section
     setTimeout(() => {
       const el = document.querySelector('.lb-header');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1209,7 +1248,7 @@
         vy: Math.random() * 0.22 + 0.07,
         vx: (Math.random() - 0.5) * 0.1,
         o: Math.random() * 0.32 + 0.08,
-        hue: Math.random() > 0.55 ? 263 : 218  // purple vs blue
+        hue: Math.random() > 0.55 ? 263 : 218
       });
     }
 
@@ -1229,9 +1268,11 @@
     frame();
   })();
 
-  /* ─────────── INIT ─────────── */
+  /* ─────────── INITIALIZATION ─────────── */
+  loadPlayerData();
   buildSidebar();
   renderOverall();
+  initAutoRefresh();  // start 30sec refresh + R key listener
 })();
 </script>
 </body>
