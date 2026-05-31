@@ -1,5 +1,5 @@
 window.defaultPlayers = [
-  { ign: "SoVirala", region: "NA", tiers: "mace:ht4" },
+  { ign: "SoVirala", region: "NA", tiers: "mace:ht3,sword:lt3,archer:lt3" },
   { ign: "diarea", region: "NA", tiers: "sword:lt5" },
   { ign: "Dominate", region: "NA", tiers: "smp:lt4" },
   { ign: "sarou_", region: "NA", tiers: "mace:lt3" },
@@ -18,8 +18,10 @@ window.defaultPlayers = [
   { ign: "yyyyyamar", region: "NA", tiers: "elytramace:lt3" },
   { ign: "sigmasigmaboyfkc", region: "NA", tiers: "sword:lt4" },
   { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
+  { ign: "M4LW4RE_3310", region: "NA", tiers: "axe:lt5,cart:lt5" },
+  { ign: "Flamitie", region: "NA", tiers: "crystal:lt5" },
   { ign: ".OnlyR3ezo", region: "NA", tiers: "sword:lt4,netheritesword:ht5,quake:lt3,archer:lt3,smp:lt5" },
   { ign: "MrB3n", region: "NA", tiers: "mace:ht5,op:lt5,sword:lt4" },
-  { ign: "Ringmaster_MC", region: "NA", tiers: "mace:ht5,axe:lt4,smp:lt5,spear:ht5" },
+  { ign: "Ringmaster_MC", region: "NA", tiers: "mace:ht5,axe:ht5,smp:lt5,spear:ht5,diamondsmp:lt5" },
   { ign: "TechComp42", region: "NA", tiers: "mace:lt5" }
 ];
