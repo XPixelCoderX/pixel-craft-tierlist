@@ -21,6 +21,8 @@ window.defaultPlayers = [
   { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
   { ign: "M4LW4RE_3310", region: "NA", tiers: "axe:lt5,cart:lt5" },
   { ign: "Flamitie", region: "NA", tiers: "crystal:lt5" },
+  { ign: "Khalilmmm3", region: "NA", tiers: "mace:lt3,sword:lt4" },
+  { ign: "Gh0st", region: "NA", tiers: "sword:lt4,quake:ht4" },
   { ign: ".camicris123", region: "NA", tiers: "sword:lt3,quake:ht4,axe:lt3,mace:lt4,fireballfight:ht4" },
   { ign: ".OnlyR3ezo", region: "NA", tiers: "sword:lt4,netheritesword:ht5,quake:lt4,archer:lt3,smp:lt5" },
   { ign: "MrB3n", region: "NA", tiers: "mace:ht5,op:lt5,sword:lt4" },
