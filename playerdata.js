@@ -1,5 +1,5 @@
 window.defaultPlayers = [
-  { ign: "SoVirala", region: "NA", tiers: "mace:ht3,sword:lt3,archer:lt3" },
+  { ign: "SoVirala", region: "NA", tiers: "mace:ht3,sword:ht4,archer:lt3,crystal:ht3" },
   { ign: "diarea", region: "NA", tiers: "sword:lt5" },
   { ign: "Dominate", region: "NA", tiers: "smp:lt4" },
   { ign: "sarou_", region: "NA", tiers: "mace:lt3" },
