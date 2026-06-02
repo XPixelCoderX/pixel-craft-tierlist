@@ -13,6 +13,7 @@ window.defaultPlayers = [
   { ign: "invalid", region: "NA", tiers: "sword:ht4" },
   { ign: "Koolblox31", region: "NA", tiers: "uhc:lt5" },
   { ign: "JeremiahSplash", region: "NA", tiers: "sword:lt5" },
+  { ign: "e1zu", region: "NA", tiers: "crystal:lt2" },
   { ign: "PixelFox", region: "NA", tiers: "crystal:ht5" },
   { ign: "ZayMC", region: "NA", tiers: "shieldlessuhc:lt4" },
   { ign: "yyyyyamar", region: "NA", tiers: "elytramace:lt3" },
