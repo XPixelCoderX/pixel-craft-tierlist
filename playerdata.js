@@ -23,7 +23,7 @@ window.defaultPlayers = [
   { ign: "_FlameFrag_", region: "NA", tiers: "crystal:lt3,smp:lt2" },
   { ign: "Yeabi", region: "NA", tiers: "smp:lt4" },
   { ign: "RJColeman", region: "NA", tiers: "sword:lt3,mace:ht4" },
-  { ign: "Not2ZY", region: "NA", tiers: "fireballfight:lt4,crystal:lt5,quake:lt5" },
+  { ign: "Not2ZY", region: "NA", tiers: "fireballfight:lt4,crystal:lt5,quake:lt5,elytraquake:ht5" },
   { ign: "M4LW4RE_3310", region: "NA", tiers: "axe:lt5,cart:lt5" },
   { ign: "Flamitie", region: "NA", tiers: "crystal:lt5" },
   { ign: "Khalilmmm3", region: "NA", tiers: "mace:lt3,sword:lt4" },
