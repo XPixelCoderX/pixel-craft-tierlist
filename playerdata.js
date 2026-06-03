@@ -13,7 +13,7 @@ window.defaultPlayers = [
   { ign: "invalid", region: "NA", tiers: "sword:ht4" },
   { ign: "Koolblox31", region: "NA", tiers: "uhc:lt5" },
   { ign: "JeremiahSplash", region: "NA", tiers: "sword:lt5" },
-  { ign: "e1zu", region: "NA", tiers: "crystal:lt2,mace:ht2" },
+  { ign: "e1zu", region: "NA", tiers: "crystal:lt2,mace:lt2,pot:ht3,netheriteop:ht3,smp:lt2,uhc:lt4,axe:ht3,sword:ht4,diamondsmp:lt2,cart:lt5,vanilla:ht3,bedfight:lt3,bridges:ht5,spear:ht3,elytramace:lt2" },
   { ign: "itzQuackers", region: "NA", tiers: "fireballfight:ht4" },
   { ign: "PixelFox", region: "NA", tiers: "crystal:ht5" },
   { ign: "ZayMC", region: "NA", tiers: "shieldlessuhc:lt4" },
