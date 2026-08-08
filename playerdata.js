@@ -2,6 +2,7 @@ window.defaultPlayers = [
   { ign: "diarea", region: "NA", tiers: "sword:lt5" },
   { ign: "Dominate", region: "NA", tiers: "smp:lt4" },
   { ign: "sarou_", region: "NA", tiers: "mace:lt3" },
+  { ign: "Mintfull_", region: "NA", tiers: "diamondsmp:ht5,sword:lt4,mace:lt3" },
   { ign: "RandomahhDev", region: "NA", tiers: "sword:lt3" },
   { ign: "TheBattleLoafs", region: "NA", tiers: "mace:ht5" },
   { ign: "L1ngCr4zy", region: "NA", tiers: "jousting:lt4,mace:ht4,sword:ht5,smp:lt4,mace:ht4" },
