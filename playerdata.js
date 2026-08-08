@@ -22,7 +22,7 @@ window.defaultPlayers = [
   { ign: "RJColeman", region: "NA", tiers: "sword:lt3,mace:ht4" },
   { ign: "M4LW4RE_3310", region: "NA", tiers: "axe:lt5,cart:lt5" },
   { ign: "Flamitie", region: "NA", tiers: "crystal:lt5" },
-  { ign: "Spooder___Man", region: "NA", tiers: "crystal:lt4" },
+  { ign: "Spooder___Man", region: "NA", tiers: "crystal:lt4,diamondsmp:ht5,spear:lt4,sword:lt4" },
   { ign: "Khalilmmm3", region: "NA", tiers: "mace:lt3,sword:lt4,uhc:lt4,mace:ht5" },
   { ign: "Tciccio3", region: "NA", tiers: "sword:ht5,uhc:lt4,spear:lt4,mace:ht5,crystal:lt4,uhc:lt4" },
   { ign: "Gh0st", region: "NA", tiers: "sword:lt4,quake:ht4" },
