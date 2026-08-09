@@ -5,7 +5,7 @@ window.defaultPlayers = [
   { ign: "Mintfull_", region: "NA", tiers: "diamondsmp:ht5,sword:ht5,mace:lt3" },
   { ign: "RandomahhDev", region: "NA", tiers: "sword:lt3" },
   { ign: "Eight__", region: "NA", tiers: "smp:ht5" },
-  { ign: "KnightBlade04", region: "NA", tiers: "uhc:ht5" },
+  { ign: "KnightBlade04", region: "NA", tiers: "uhc:ht5,netheritepotion:ht5" },
   { ign: "TheBattleLoafs", region: "NA", tiers: "mace:ht5" },
   { ign: "L1ngCr4zy", region: "NA", tiers: "jousting:lt4,mace:ht4,sword:ht5,smp:lt4,mace:ht4" },
   { ign: "invalid", region: "NA", tiers: "sword:ht4" },
