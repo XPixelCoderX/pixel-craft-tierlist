@@ -1,0 +1,23 @@
+{
+  "name": "PCN Tierlist",
+  "short_name": "PCN Tierlist",
+  "description": "Pixel Craft Network (PCSMP) Minecraft PvP tier list and rankings.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0d0f13",
+  "theme_color": "#d9a93e",
+  "icons": [
+    {
+      "src": "logo-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
