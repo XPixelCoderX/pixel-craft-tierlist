@@ -44,5 +44,10 @@ window.defaultPlayers = [
   { ign: "wis_dum", region: "NA", tiers: "spearmace:lt5" },
   { ign: "farouk0176", region: "NA", tiers: "spearmace:lt4" },
   { ign: "_IshouldbeBANNED", region: "NA", tiers: "smp:ht5" },
-  { ign: "e1zu", region: "NA", tiers: "spearmace:lt3" }
+  { ign: "e1zu", region: "NA", tiers: "spearmace:lt3" },
+  { ign: "mo_s223", region: "NA", tiers: "mace:ht5" },
+  { ign: "KnightBlade04", region: "NA", tiers: "uhc:ht5,netheritepotion:ht5,sword:ht5,mace:lt5,diamondsmp:ht5,spearmace:lt4" },
+  { ign: "KAKAROX1", region: "NA", tiers: "spearmace:lt4" },
+  { ign: "Senpai_Extra____", region: "NA", tiers: "netheritepotion:ht4" },
+  { ign: "Ketomaki_MCALT", region: "NA", tiers: "diamondsmp:lt5" }
 ];
